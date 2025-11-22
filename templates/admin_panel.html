@@ -1,0 +1,16 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Panel Admin</title>
+<h2>Panel Admin</h2>
+<a href="/">Vista pública</a>
+<form method="post" action="/guardar" enctype="multipart/form-data">
+  <label>Nombre completo</label><input name="nombre" required>
+  <label>Año nacimiento</label><input type="number" name="anio_nacimiento" required>
+  <label>Posición</label><input name="posicion" required>
+  <label>Goles</label><input type="number" name="goles" required>
+  <label>Asistencias</label><input type="number" name="asistencias" required>
+  <label>Foto</label><input type="file" name="imagen" accept="image/*">
+  <button type="submit">Guardar Jugador</button>
+</form>
+<hr>
+<p>Aquí irá el listado cuando conectes la DB.</p>
