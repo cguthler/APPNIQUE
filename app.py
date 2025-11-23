@@ -31,7 +31,6 @@ PDF_PASSWORD = "guthler"   # <-- cambia aquí tu clave
 
 # ---------- BD ----------
 def init_db():
-    conn = psycopg2.connect(os.getenv("SUPABASE_URI")) if RENDER else sqlite3.connect("jugadores.db")
     conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
     cursor.execute("""
