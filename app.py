@@ -32,20 +32,36 @@ PDF_PASSWORD = "guthler"   # <-- cambia aquí tu clave
 # ---------- BD ----------
 def init_db():
     conn = psycopg2.connect(DATABASE_URL)
-    cursor = conn.cursor()
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS jugadores (
-            id SERIAL PRIMARY KEY,
-            nombre TEXT,
-            anio_nacimiento INTEGER,
-            posicion TEXT,
-            goles INTEGER,
-            asistencias INTEGER,
-            imagen TEXT,
-            fecha_ingreso TEXT,
-            pdf TEXT
-        )
-    """)
+    with conn.cursor() as cur:
+        # ---- creación de tabla ----
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS jugadores (
+                id SERIAL PRIMARY KEY,
+                nombre TEXT,
+                anio_nacimiento INTEGER,
+                posicion TEXT,
+                goles INTEGER,
+                asistencias INTEGER,
+                imagen TEXT,
+                fecha_ingreso TEXT,
+                pdf TEXT
+            )
+        """)
+        # ---- solo si usas Render / Cloudinary ----
+        if os.getenv("RENDER") == "true":
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS jugadores (
+                    id SERIAL PRIMARY KEY,
+                    nombre TEXT,
+                    anio_nacimiento INTEGER,
+                    posicion TEXT,
+                    goles INTEGER,
+                    asistencias INTEGER,
+                    imagen_url TEXT,
+                    fecha_ingreso DATE,
+                    pdf_url TEXT
+                )
+            """)
     conn.commit()
     conn.close()
 
