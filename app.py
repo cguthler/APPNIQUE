@@ -86,7 +86,7 @@ def admin_login():
     return render_template_string(ADMIN_LOGIN_HTML)
 
 @app.route("/admin/panel")
-def admin_panel():
+
     if not session.get("admin"):
         return redirect(url_for("admin_login"))
     conn = sqlite3.connect("jugadores.db")
