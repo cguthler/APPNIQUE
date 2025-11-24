@@ -1,6 +1,6 @@
 import psycopg2
 
-DATABASE_URL = "postgresql://neondb_owner:npg_FCk16HNmWiJg@ep-old-pond-ahmp5j7p-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require"
+DATABASE_URL = "postgresql://neondb_owner:npg_FCk16HNmWiJg@pg-5c97c96-crisguthler2020-36f6.b.aivencloud.com:25035/defaultdb/neondb?sslmode=require"
 
 conn = psycopg2.connect(DATABASE_URL)
 cursor = conn.cursor()
