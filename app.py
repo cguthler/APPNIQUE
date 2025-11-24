@@ -33,7 +33,6 @@ PDF_PASSWORD = "guthler"   # <-- cambia aquí tu clave
 def init_db():
     conn = psycopg2.connect(DATABASE_URL)
     with conn.cursor() as cur:
-        # ---- creación de tabla ----
         cur.execute("""
             CREATE TABLE IF NOT EXISTS jugadores (
                 id SERIAL PRIMARY KEY,
@@ -47,7 +46,6 @@ def init_db():
                 pdf TEXT
             )
         """)
-        # ---- solo si usas Render / Cloudinary ----
         if os.getenv("RENDER") == "true":
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS jugadores (
@@ -62,41 +60,21 @@ def init_db():
                     pdf_url TEXT
                 )
             """)
-    conn.commit()
+        conn.commit()
     conn.close()
 
-    # ---------- tabla para Render (solo si estamos en la nube) ----------
-    if RENDER:
-        with conn.cursor() as cur:
-            cur.execute("""
-                CREATE TABLE IF NOT EXISTS jugadores (
-                    id SERIAL PRIMARY KEY,
-                    nombre TEXT,
-                    anio_nacimiento INTEGER,
-                    posicion TEXT,
-                    goles INTEGER,
-                    asistencias INTEGER,
-                    imagen_url TEXT,
-                    fecha_ingreso DATE,
-                    pdf_url TEXT
-                )
-            """)
-            conn.commit()
-
-# ---------- RUTAS ----------
-@app.route("/")
-def index():
-    init_db()
+@app.route("/admin/panel")
+def admin_panel():
+    if not session.get("admin"):
+        return redirect(url_for("admin_login"))
     conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
     cursor.execute(
-        "SELECT id, nombre, anio_nacimiento, posicion, goles, asistencias, imagen "
-        "FROM jugadores ORDER BY id DESC"
+        "SELECT id, nombre, anio_nacimiento, posicion, goles, asistencias, imagen FROM jugadores ORDER BY id DESC"
     )
     rows = cursor.fetchall()
     conn.close()
-    return render_template_string(INDEX_HTML, jugadores=rows, PDF_PASSWORD=PDF_PASSWORD)
-
+    return render_template_string(ADMIN_PANEL_HTML, jugadores=rows)
 @app.route("/admin", methods=["GET", "POST"])
 def admin_login():
     if request.method == "POST":
