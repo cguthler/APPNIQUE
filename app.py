@@ -9,7 +9,7 @@ import os, psycopg2, cloudinary
 from cloudinary.uploader import upload as cld_upload
 from dotenv import load_dotenv
 load_dotenv()
-DATABASE_URL = "postgresql://neondb_owner:npg_FCk16HNmWiJg@ep-old-pond-ahmp5j7p-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require"
+DATABASE_URL = os.getenv("DATABASE_URL")
 RENDER = os.getenv("RENDER") == "true"   # variable de entorno
 if RENDER:
     cloudinary.config(
@@ -73,7 +73,11 @@ def index():
     init_db()
     conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
-    rows = cursor.execute("SELECT id, nombre, edad, posicion, goles, asistencias, imagen FROM jugadores ORDER BY id DESC").fetchall()
+    cursor.execute(
+        "SELECT id, nombre, anio_nacimiento, posicion, goles, asistencias, imagen "
+        "FROM jugadores ORDER BY id DESC"
+    )
+    rows = cursor.fetchall()
     conn.close()
     return render_template_string(INDEX_HTML, jugadores=rows, PDF_PASSWORD=PDF_PASSWORD)
 
