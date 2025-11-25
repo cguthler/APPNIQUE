@@ -75,6 +75,7 @@ def admin_panel():
     rows = cursor.fetchall()
     conn.close()
     return render_template_string(ADMIN_PANEL_HTML, jugadores=rows)
+
 @app.route("/admin", methods=["GET", "POST"])
 def admin_login():
     if request.method == "POST":
@@ -84,16 +85,6 @@ def admin_login():
         else:
             return "❌ Contraseña incorrecta"
     return render_template_string(ADMIN_LOGIN_HTML)
-
-@app.route("/admin/panel")
-
-    if not session.get("admin"):
-        return redirect(url_for("admin_login"))
-    conn = sqlite3.connect("jugadores.db")
-    cursor = conn.cursor()
-    rows = cursor.execute("SELECT id, nombre, edad, posicion, goles, asistencias, imagen FROM jugadores ORDER BY id DESC").fetchall()
-    conn.close()
-    return render_template_string(ADMIN_PANEL_HTML, jugadores=rows)
 
 @app.route("/guardar", methods=["POST"])
 def guardar():
@@ -119,7 +110,7 @@ def guardar():
     conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
     cursor.execute(
-        "INSERT INTO jugadores (nombre, edad, posicion, goles, asistencias, imagen) VALUES (%s, %s, %s, %s, %s, %s)",
+        "INSERT INTO jugadores (nombre, anio_nacimiento, posicion, goles, asistencias, imagen) VALUES (%s, %s, %s, %s, %s, %s)",
         (nombre, int(anio), posicion, int(goles), int(asistencias), imagen)
     )
     conn.commit()
@@ -179,9 +170,9 @@ def serve_pdf(name):
 def borrar(jugador_id):
     if not session.get("admin"):
         return redirect(url_for("admin_login"))
-    conn = sqlite3.connect("jugadores.db")
+    conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
-    cursor.execute("DELETE FROM jugadores WHERE id = ?", (jugador_id,))
+    cursor.execute("DELETE FROM jugadores WHERE id = %s", (jugador_id,))
     conn.commit()
     conn.close()
     return redirect(url_for("admin_panel"))
@@ -420,14 +411,14 @@ body{
         Niquee Fútbol Club nació en 2017 en Guayaquil con la filosofía de adoración a Dios, juego limpio y trabajo en equipo.
         Participamos en ligas barriales y torneos locales. ¡Buscamos talento honestidad y lealtad!<br>
         Entrenamientos: lun/mié/vie 18:00-20:00 | Cancha: sintéticas fútbol Garzota samanes<br>
-        Redes: <a href="https://www.facebook.com/share/1CWH1PEHMU/ " target="_blank" style="color:#ffff80">Facebook</a>
+        Redes: <a href="https://www.facebook.com/share/1CWH1PEHMU/  " target="_blank" style="color:#ffff80">Facebook</a>
       </p>
     </div>
   </div>
 
   <footer>
     @transguthler&asociados • fonos 593958787986-593992123592<br>
-    cguthler@hotmail.com • <a href="https://www.facebook.com/share/1CWH1PEHMU/ " target="_blank" style="color:#ffff80">fb.me/share/1CWH1PEHMU</a><br>
+    cguthler@hotmail.com • <a href="https://www.facebook.com/share/1CWH1PEHMU/  " target="_blank" style="color:#ffff80">fb.me/share/1CWH1PEHMU</a><br>
     Guayaquil – Ecuador
   </footer>
 
