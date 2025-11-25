@@ -467,6 +467,14 @@ ADMIN_PANEL_HTML = """
   </div>
 {% endfor %}
 """
-
+@app.route("/")
+def index():
+    init_db()  # por si aún no existe la tabla
+    conn = psycopg2.connect(DATABASE_URL)
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, nombre, anio_nacimiento, posicion, goles, asistencias, imagen FROM jugadores ORDER BY id DESC")
+    jugadores = cursor.fetchall()
+    conn.close()
+    return render_template_string(INDEX_HTML, jugadores=jugadores, PDF_PASSWORD=PDF_PASSWORD)
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
