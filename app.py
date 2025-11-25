@@ -472,7 +472,9 @@ def index():
     init_db()  # por si aún no existe la tabla
     conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
-    cursor.execute("SELECT id, nombre, anio_nacimiento, posicion, goles, asistencias, imagen FROM jugadores ORDER BY id DESC")
+    cursor.execute(
+        "SELECT id, nombre, anio_nacimiento, posicion, goles, asistencias, imagen, pdf FROM jugadores ORDER BY id DESC"
+    )
     jugadores = cursor.fetchall()
     conn.close()
     return render_template_string(INDEX_HTML, jugadores=jugadores, PDF_PASSWORD=PDF_PASSWORD)
