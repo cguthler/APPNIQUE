@@ -120,7 +120,7 @@ def guardar():
 @app.route("/subir_pdf/<int:jugador_id>", methods=["POST"])
 def subir_pdf(jugador_id):
     file = request.files["pdf"]
-    if file and file.filename.endswith(".pdf"):
+    if file and file.filename and file.filename.lower().strip().endswith(".pdf"):
         conn = psycopg2.connect(DATABASE_URL)
         cursor = conn.cursor()
         cursor.execute(
@@ -199,6 +199,7 @@ body{
     text-align:center;
     padding:20px 0 12px;
     font-size:2rem;
+    color:#000;        /* negro puro */
   }
   .wrap{
     display:flex;
