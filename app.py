@@ -474,7 +474,7 @@ ADMIN_PANEL_HTML = """
 {% for j in jugadores %}
   <div>
     <strong>{{ j[1] }}</strong> |
-    <a href="/docs/{{ j[8] }}">📄 Ver PDF</a> |
+    <a href="/docs/{{ j[7] }}">📄 Ver PDF</a> |
     <a href="/borrar/{{ j[0] }}" onclick="return confirm('¿Borrar?')">🗑️ Borrar</a>
   </div>
 {% endfor %}
