@@ -27,7 +27,7 @@ os.makedirs(UPLOAD_IMG, exist_ok=True)
 os.makedirs(UPLOAD_DOCS, exist_ok=True)
 
 ADMIN_PASSWORD = "jeremias123"
-PDF_PASSWORD = "guthler"   # <-- cambia aquí tu clave
+PDF_PASSWORD = "equipo"   # <-- cambia aquí tu clave
 
 # ---------- BD ----------
 def init_db():
@@ -116,11 +116,12 @@ def guardar():
     conn.commit()
     conn.close()
     return redirect(url_for("admin_panel"))
-
 @app.route("/subir_pdf/<int:jugador_id>", methods=["POST"])
 def subir_pdf(jugador_id):
     file = request.files["pdf"]
     if file and file.filename and file.filename.lower().strip().endswith(".pdf"):
+        resultado = uploader.upload(file, resource_type='raw', folder='pdfs')
+        url_pdf = resultado['secure_url']   # ésta es la que guardarás en tu BD
         conn = psycopg2.connect(DATABASE_URL)
         cursor = conn.cursor()
         cursor.execute(
