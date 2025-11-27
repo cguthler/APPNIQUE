@@ -46,23 +46,15 @@ def init_db():
                 pdf TEXT
             )
         """)
-        if os.getenv("RENDER") == "true":
-            cur.execute("""
-                CREATE TABLE IF NOT EXISTS jugadores (
-                    id SERIAL PRIMARY KEY,
-                    nombre TEXT,
-                    anio_nacimiento INTEGER,
-                    posicion TEXT,
-                    goles INTEGER,
-                    asistencias INTEGER,
-                    imagen_url TEXT,
-                    fecha_ingreso DATE,
-                    pdf_url TEXT
-                )
-            """)
+
+        # ✅ AGREGA ESTO AQUÍ:
+        cur.execute("""
+            ALTER TABLE jugadores
+            ADD COLUMN IF NOT EXISTS pdf_url TEXT;
+        """)
+
         conn.commit()
     conn.close()
-
 @app.route("/admin/panel")
 def admin_panel():
     if not session.get("admin"):
