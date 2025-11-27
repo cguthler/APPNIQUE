@@ -120,8 +120,8 @@ def guardar():
 def subir_pdf(jugador_id):
     file = request.files["pdf"]
     if file and file.filename and file.filename.lower().strip().endswith(".pdf"):
-        resultado = uploader.upload(file, resource_type='raw', folder='pdfs')
-        url_pdf = resultado['secure_url']   # ésta es la que guardarás en tu BD
+        resultado = cld_upload(file, resource_type='raw', folder='pdfs')
+        url_pdf = resultado['secure_url']
         conn = psycopg2.connect(DATABASE_URL)
         cursor = conn.cursor()
         cursor.execute(
@@ -184,7 +184,7 @@ INDEX_HTML = """
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <title>⚽ NIQUEE FÚTBOL CLUB</title>
+  <title>⚽ NIQUÉE FUTBOL CLUB</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
  <style>
   *{box-sizing:border-box;margin:0;padding:0}
