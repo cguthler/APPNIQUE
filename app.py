@@ -119,6 +119,8 @@ def guardar():
 @app.route("/subir_pdf/<int:jugador_id>", methods=["POST"])
 def subir_pdf(jugador_id):
     file = request.files["pdf"]
+    if not file or file.content_length == 0:
+        return "Archivo vacío", 400
     if file and file.filename and file.filename.lower().strip().endswith(".pdf"):
         resultado = cld_upload(file, resource_type='raw', folder='pdfs')
         url_pdf = resultado['secure_url']
