@@ -8,6 +8,7 @@ from werkzeug.utils import secure_filename
 import os, psycopg2, cloudinary
 from cloudinary.uploader import upload as cld_upload
 from dotenv import load_dotenv
+from datetime import datetime
 load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
 RENDER = os.getenv("RENDER") == "true"   # variable de entorno
@@ -47,7 +48,7 @@ def init_db():
             )
         """)
 
-        # ✅ AGREGA ESTO AQUÍ:
+        # ✅ Columna nueva para URL de Cloudinary
         cur.execute("""
             ALTER TABLE jugadores
             ADD COLUMN IF NOT EXISTS pdf_url TEXT;
@@ -55,6 +56,8 @@ def init_db():
 
         conn.commit()
     conn.close()
+
+
 @app.route("/admin/panel")
 def admin_panel():
     if not session.get("admin"):
@@ -62,7 +65,7 @@ def admin_panel():
     conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
     cursor.execute(
-        "SELECT id, nombre, anio_nacimiento, posicion, goles, asistencias, imagen FROM jugadores ORDER BY id DESC"
+        "SELECT id, nombre, anio_nacimiento, posicion, goles, asistencias, imagen, pdf_url FROM jugadores ORDER BY id DESC"
     )
     rows = cursor.fetchall()
     conn.close()
@@ -82,11 +85,13 @@ def admin_login():
 def guardar():
     if not session.get("admin"):
         return redirect(url_for("admin_login"))
+
     nombre = request.form["nombre"]
     anio = request.form["anio_nacimiento"]
     posicion = request.form["posicion"]
     goles = request.form["goles"]
     asistencias = request.form["asistencias"]
+
     imagen = ""
     if "imagen" in request.files:
         file = request.files["imagen"]
@@ -99,6 +104,7 @@ def guardar():
                 path = os.path.join(UPLOAD_IMG, filename)
                 file.save(path)
                 imagen = filename
+
     conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
     cursor.execute(
@@ -107,42 +113,37 @@ def guardar():
     )
     conn.commit()
     conn.close()
+
     return redirect(url_for("admin_panel"))
+    
 @app.route("/subir_pdf/<int:jugador_id>", methods=["POST"])
 def subir_pdf(jugador_id):
-    file = request.files["pdf"]
-    if not file or file.content_length == 0:
-        return "Archivo vacío", 400
-    if file and file.filename and file.filename.lower().strip().endswith(".pdf"):
-        resultado = cld_upload(file, resource_type='raw', folder='pdfs')
-        url_pdf = resultado['secure_url']
-        conn = psycopg2.connect(DATABASE_URL)
-        cursor = conn.cursor()
-        cursor.execute(
-            "SELECT nombre FROM jugadores WHERE id = %s" if RENDER else "SELECT nombre FROM jugadores WHERE id = ?",
-            (jugador_id,)
-        )
-        row = cursor.fetchone()
-        if not row:
-            conn.close()
-            return "Jugador no encontrado", 404
-        nombre_jugador = row[0]
+    file = request.files.get("pdf")
+    if not file or file.filename == "":
+        return "Archivo no válido", 400
+    if not file.filename.lower().endswith(".pdf"):
+        return "Solo se permite PDF", 400
 
-        if RENDER:
-            upload_res = cld_upload(file, resource_type="raw")
-            filename = upload_res['secure_url']
-        else:
-            filename = f"{nombre_jugador}.pdf"
-            path = os.path.join(UPLOAD_DOCS, filename)
-            file.save(path)
+    # Subimos a Cloudinary en carpeta privada por jugador
+    resultado = cld_upload(
+        file,
+        resource_type='raw',
+        folder=f"jugadores/{jugador_id}",
+        public_id=f"doc-{int(datetime.now().timestamp())}"
+    )
+    pdf_url = resultado['secure_url']
 
-        cursor.execute(
-            "UPDATE jugadores SET pdf = %s WHERE id = %s" if RENDER else "UPDATE jugadores SET pdf = ? WHERE id = ?",
-            (filename, jugador_id)
-        )
-        conn.commit()
-        conn.close()
-        return redirect(url_for("index"))
+    # Guardamos la URL en el jugador correspondiente
+    conn = psycopg2.connect(DATABASE_URL)
+    cursor = conn.cursor()
+    cursor.execute(
+        "UPDATE jugadores SET pdf_url = %s WHERE id = %s",
+        (pdf_url, jugador_id)
+    )
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for("index"))
     return "Archivo no válido", 400
 
 @app.route("/uploads/<path:name>")
@@ -382,16 +383,19 @@ body{
         <h2>Plantilla de jugadores</h2>
       </div>
       {% for j in jugadores %}
-        <div class="player">
-          <img src="{{ url_for('serve_img', name=j[6]) }}" alt="Foto">
-          <div class="info">
-            <strong>{{ j[1] }}</strong>
-            <span>{{ j[2] }} • {{ j[3] }}</span>
-            <span>G:{{ j[4] }} • A:{{ j[5] }}</span>
-          </div>
-        </div>
-      {% endfor %}
-    </section>
+      <div class="player">
+  <img src="{{ url_for('serve_img', name=j[6]) }}" alt="Foto">
+  <div class="info">
+    <strong>{{ j[1] }}</strong>
+    <span>{{ j[2] }} • {{ j[3] }}</span>
+    <span>G:{{ j[4] }} • A:{{ j[5] }}</span>
+    {% if j[7] %}
+      <a href="{{ j[7] }}" target="_blank" style="color:#ffff80; font-size:13px;">📄 Ver PDF</a>
+    {% else %}
+      <span style="font-size:12px;color:#aaa;">Sin PDF</span>
+    {% endif %}
+  </div>
+</div>
 
     <!--  COLUMNA DERECHA  -->
     <section class="col-right">
@@ -481,10 +485,12 @@ def index():
     conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
     cursor.execute(
-        "SELECT id, nombre, anio_nacimiento, posicion, goles, asistencias, imagen, pdf FROM jugadores ORDER BY id DESC"
-    )
+    "SELECT id, nombre, anio_nacimiento, posicion, goles, asistencias, imagen, pdf_url FROM jugadores ORDER BY id DESC"
+)
     jugadores = cursor.fetchall()
     conn.close()
     return render_template_string(INDEX_HTML, jugadores=jugadores, PDF_PASSWORD=PDF_PASSWORD)
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
