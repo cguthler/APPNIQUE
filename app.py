@@ -339,6 +339,7 @@ body{
   <div class="modal-content">
     <span class="close" onclick="document.getElementById('pdfModal').style.display='none'">&times;</span>
     <h3>Subir PDF de jugador</h3>
+
     <form id="pdfForm" enctype="multipart/form-data">
       <label>Seleccione jugador:</label>
       <select id="pdfJugador" required>
@@ -346,8 +347,10 @@ body{
           <option value="{{ j[0] }}">{{ j[1] }}</option>
         {% endfor %}
       </select>
+
       <label>Archivo PDF:</label>
       <input type="file" name="pdf" accept=".pdf" required>
+
       <button type="submit" class="btn">Subir PDF</button>
     </form>
   </div>
@@ -357,16 +360,23 @@ body{
   // Enviar PDF vía JS para evitar recargar la página
   document.getElementById('pdfForm').addEventListener('submit', function (e) {
     e.preventDefault();
+
     const id   = document.getElementById('pdfJugador').value;
     const file = this.pdf.files[0];
     if (!file) return;
+
     console.log('ID →', id);
     console.log('URL →', '/subir_pdf/' + id);
+
     const fd = new FormData();
     fd.append('pdf', file);
-    fetch('/subir_pdf/' + id, { method: 'POST', body: fd })
-      .then(() => { location.reload(); })
-      .catch(() => { alert('Error al subir'); });
+
+    fetch('https://appniquee.onrender.com/subir_pdf/' + encodeURIComponent(id), {
+      method: 'POST',
+      body: fd
+    })
+      .then(() => location.reload())
+      .catch(() => alert('Error al subir'));
   });
 </script>
 <body>
