@@ -360,6 +360,8 @@ body{
     const id   = document.getElementById('pdfJugador').value;
     const file = this.pdf.files[0];
     if (!file) return;
+    console.log('ID →', id);
+    console.log('URL →', '/subir_pdf/' + id);
     const fd = new FormData();
     fd.append('pdf', file);
     fetch('/subir_pdf/' + id, { method: 'POST', body: fd })
