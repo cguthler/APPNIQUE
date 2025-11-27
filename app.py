@@ -370,8 +370,8 @@ body{
 
     const fd = new FormData();
     fd.append('pdf', file);
-
     fetch('https://appniquee.onrender.com/subir_pdf/' + encodeURIComponent(id), {
+   
       method: 'POST',
       body: fd
     })
