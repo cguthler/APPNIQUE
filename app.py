@@ -474,11 +474,10 @@ ADMIN_PANEL_HTML = """
 {% for j in jugadores %}
   <div>
     <strong>{{ j[1] }}</strong> |
-    <a href="/docs/{{ j[7] }}">📄 Ver PDF</a> |
+    <a href="{{ j[7] }}" target="_blank">📄 Ver PDF</a> |
     <a href="/borrar/{{ j[0] }}" onclick="return confirm('¿Borrar?')">🗑️ Borrar</a>
   </div>
 {% endfor %}
-"""
 @app.route("/")
 def index():
     init_db()  # por si aún no existe la tabla
