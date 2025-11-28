@@ -185,8 +185,8 @@ INDEX_HTML = """
     *{box-sizing:border-box;margin:0;padding:0}
     body{
       font-family:Segoe UI,system-ui,sans-serif;
-      background: url("{{ url_for('static', filename='uploads/fondo.jpg') }}") no-repeat center center fixed;
-      background-size: cover;
+      background:url("{{ url_for('static', filename='uploads/fondo.jpg') }}") no-repeat center center fixed;
+      background-size:cover;
       color:#ffff00;
       font-size:16px;
       line-height:1.5;
@@ -270,7 +270,7 @@ INDEX_HTML = """
 
   <!-- VENTANA 1: Título + Galería -->
   <div class="ventana">
-  <h1>&#9917; NIQUEE FÚTBOL CLUB</h1>
+    <h1>&#9917; NIQUEE FÚTBOL CLUB</h1>
     <div class="galeria">
       <img src="{{ url_for('static', filename='uploads/niqueeblanco.jpg') }}" alt="Equipo 1">
       <img src="{{ url_for('static', filename='uploads/logo.png') }}" alt="Equipo 2">
@@ -299,7 +299,7 @@ INDEX_HTML = """
           <span>{{ j[2] }} • {{ j[3] }}</span>
           <span>G:{{ j[4] }} • A:{{ j[5] }}</span>
           {% if j[7] %}
-            <a href="{{ j[7] }}" download="{{ j[1] | replace(' ', '_') }}_acta.pdf" style="color:#ffff80; font-size:13px;">&#128196; Descargar PDF</a>
+            <a href="{{ j[7] }}" download="{{ j[1] | replace(' ', '_') }}_acta.pdf" style="color:#ffff80;font-size:13px;">&#128196; Descargar PDF</a>
           {% else %}
             <span style="font-size:12px;color:#aaa;">Sin PDF</span>
           {% endif %}
@@ -312,9 +312,12 @@ INDEX_HTML = """
   <div id="infoModal" class="ventana" style="display:none;position:fixed;top:20%;left:50%;transform:translateX(-50%);z-index:999;">
     <span style="float:right;cursor:pointer;" onclick="document.getElementById('infoModal').style.display='none'">&times;</span>
     <h3>Información del Club</h3>
-    <p>Niquee Fútbol Club nació en 2017 en Guayaquil con la filosofía de adoración a Dios, juego limpio y trabajo en equipo. Participamos en ligas barriales y torneos locales. ¡Buscamos talento honestidad y lealtad!<br>
-    Entrenamientos: lun/mié/vie 18:00-20:00 | Cancha: sintéticas fútbol Garzota samanes<br>
-    Redes: <a href="https://www.facebook.com/share/1CWH1PEHMU/" target="_blank" style="color:#ffff80">Facebook</a></p>
+    <p>
+      Niquee Fútbol Club nació en 2017 en Guayaquil con la filosofía de adoración a Dios, juego limpio y trabajo en equipo.
+      Participamos en ligas barriales y torneos locales. ¡Buscamos talento honestidad y lealtad!<br>
+      Entrenamientos: lun/mié/vie 18:00-20:00 | Cancha: sintéticas fútbol Garzota samanes<br>
+      Redes: <a href="https://www.facebook.com/share/1CWH1PEHMU/" target="_blank" style="color:#ffff80">Facebook</a>
+    </p>
   </div>
 
   <div id="pdfModal" class="ventana" style="display:none;position:fixed;top:20%;left:50%;transform:translateX(-50%);z-index:999;">
@@ -334,7 +337,7 @@ INDEX_HTML = """
   </div>
 
   <footer>
-    @transguthler&asociados • fonos 593958787986-593992123592<br>
+    @transguthler&amp;asociados • fonos 593958787986-593992123592<br>
     cguthler@hotmail.com • <a href="https://www.facebook.com/share/1CWH1PEHMU/" target="_blank" style="color:#ffff80">fb.me/share/1CWH1PEHMU</a><br>
     Guayaquil – Ecuador
   </footer>
@@ -347,7 +350,7 @@ INDEX_HTML = """
       if (intro === PDF_CLAVE_CORRECTA) {
         document.getElementById('pdfModal').style.display = 'block';
       } else if (intro !== null) {
-       alert("\u274C Contraseña incorrecta");
+        alert("\u274C Contraseña incorrecta");
       }
     }
 
@@ -369,7 +372,7 @@ INDEX_HTML = """
   </script>
 </body>
 </html>
-
+"""
 ADMIN_LOGIN_HTML = """
 <form method="post" style="max-width:300px;margin:auto">
   <h2>Admin Login</h2>
