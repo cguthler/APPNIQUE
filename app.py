@@ -398,22 +398,47 @@ body{
 </div>
 {% endfor %}
 
-    <!--  COLUMNA DERECHA  -->
-    <section class="col-right">
-      <div class="btns" style="display:flex; justify-content:center; gap:15px;">
-        <a href="/admin" class="btn">Panel Admin</a>
-        <button class="btn" onclick="document.getElementById('infoModal').style.display='block'">+ Info</button>
-       <button class="btn" onclick="pedirClavePDF()">Cargar PDF</button>
-      </div>
-      <h2>Galería</h2>
-      <div class="gallery">
-        <img src="{{ url_for('static', filename='uploads/niqueeblanco.jpg') }}" alt="Equipo 1">
-        <img src="{{ url_for('static', filename='uploads/logo.png') }}" alt="Equipo 2">
-        <img src="{{ url_for('static', filename='uploads/gruponique.jpg') }}" alt="Equipo 3">
-        <img src="{{ url_for('static', filename='uploads/niqueazul.jpg') }}" alt="Equipo 4">
-      </div>
-    </section>
+   <!-- TÍTULO SUPERIOR CENTRADO -->
+<div class="titulo-superior" style="text-align:center; margin:20px 0;">
+  <h1 style="color:#000; font-size:2rem;">NIQUEE FÚTBOL CLUB</h1>
+</div>
+
+<!-- CUADRO CENTRAL (botones + 4 fotos) -->
+<div class="cuadro-central" style="margin:20px auto; max-width:800px; background:#1b263b; border-radius:12px; padding:20px;">
+  <!-- Botones dentro del cuadro -->
+  <div class="botones-cuadro" style="display:flex; justify-content:center; gap:15px; margin-bottom:20px;">
+    <a href="/admin" class="btn">Panel Admin</a>
+    <button class="btn" onclick="document.getElementById('infoModal').style.display='block'">+ Info</button>
+    <button class="btn" onclick="pedirClavePDF()">Cargar PDF</button>
   </div>
+
+  <!-- 4 fotos del equipo dentro del mismo cuadro -->
+  <div class="fotos-cuadro" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:15px; justify-items:center; margin-top:10px;">
+    <img src="{{ url_for('static', filename='uploads/niqueeblanco.jpg') }}" alt="Equipo 1" style="width:100%; height:140px; object-fit:cover; border-radius:8px;">
+    <img src="{{ url_for('static', filename='uploads/logo.png') }}" alt="Equipo 2" style="width:100%; height:140px; object-fit:cover; border-radius:8px;">
+    <img src="{{ url_for('static', filename='uploads/gruponique.jpg') }}" alt="Equipo 3" style="width:100%; height:140px; object-fit:cover; border-radius:8px;">
+    <img src="{{ url_for('static', filename='uploads/niqueazul.jpg') }}" alt="Equipo 4" style="width:100%; height:140px; object-fit:cover; border-radius:8px;">
+  </div>
+</div>
+
+<!-- PLANTILLA DE JUGADORES (debajo del cuadro) -->
+<div class="plantilla-jugadores" style="margin:20px 0;">
+  {% for j in jugadores %}
+  <div class="player" style="display:flex; align-items:center; gap:12px; margin-bottom:12px; background:#415a77; padding:10px; border-radius:8px;">
+    <img src="{{ url_for('serve_img', name=j[6]) }}" alt="Foto" style="width:60px; height:60px; object-fit:cover; border-radius:50%;">
+    <div class="info" style="font-size:14px;">
+      <strong>{{ j[1] }}</strong>
+      <span>{{ j[2] }} • {{ j[3] }}</span>
+      <span>G:{{ j[4] }} • A:{{ j[5] }}</span>
+      {% if j[7] %}
+        <a href="{{ j[7] }}" download="{{ j[1] | replace(' ', '_') }}_acta.pdf" style="color:#ffff80; font-size:13px;">📄 Descargar PDF</a>
+      {% else %}
+        <span style="font-size:12px;color:#aaa;">Sin PDF</span>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
 
   <!--  MODAL  -->
   <div id="infoModal" class="modal">
