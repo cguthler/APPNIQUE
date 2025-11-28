@@ -181,158 +181,145 @@ INDEX_HTML = """
   <meta charset="utf-8">
   <title>⚽ NIQUÉE FUTBOL CLUB</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
- <style>
-  *{box-sizing:border-box;margin:0;padding:0}
-body{
-  font-family:Segoe UI,system-ui,sans-serif;
-  background: url("{{ url_for('static', filename='uploads/fondo.jpg') }}") no-repeat center center fixed;
-  background-size: cover;
-  color:#ffff00;
-  font-size:16px;
-  line-height:1.5;
-}
-  h1{
-    text-align:center;
-    padding:20px 0 12px;
-    font-size:2rem;
-    color:#000;        /* negro puro */
-  }
-  .wrap{
-    display:flex;
-    gap:20px;
-    max-width:1200px;
-    margin:auto;
-    padding:0 20px 40px;
-  }
-  /* -------- columna izquierda -------- */
-  .col-left{
-    flex:0 0 320px;
-    background:#1b263b;
-    border-radius:12px;
-    padding:15px;
-    max-height:80vh;
-    overflow-y:auto;
-  }
-  .logo-titulo{
-  text-align:center;
-  margin-bottom:15px;
-  }
-.logo-titulo img{
-  height:80px;
-  border-radius:8px;
-  }
-.logo-titulo h2{
-  margin-top:8px;
-  font-size:1.2rem;
-  }
-  .player{
-    display:flex;
-    align-items:center;
-    gap:12px;
-    margin-bottom:12px;
-    background:#415a77;
-    padding:10px;
-    border-radius:8px;
-  }
-  .player img{
-    width:60px;
-    height:60px;
-    object-fit:cover;
-    border-radius:50%;
-  }
-  .info{font-size:14px}
-  .info strong{
-    display:block;
-    font-size:15px;
-    margin-bottom:2px;
-  }
-  /* -------- columna derecha -------- */
-  .col-right{
-    flex:1 1 350px;
-    background:#1b263b;
-    border-radius:12px;
-    padding:18px;
-    text-align:center;
-  }
-  .btns{
-    margin-bottom:18px;
-    display:flex;
-    justify-content:center;
-    gap:15px;
-  }
-  .btn{
-    background:#415a77;
-    color:#ffff00;
-    padding:10px 18px;
-    border:none;
-    border-radius:8px;
-    cursor:pointer;
-    font-size:15px;
-    text-decoration:none;
-  }
-  .btn:hover{background:#5a7fb0}
-  .gallery{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
-    gap:15px;
-  }
-  .gallery img{
-    width:100%;
-    height:140px;
-    object-fit:cover;
-    border-radius:8px;
-  }
-  /* -------- modal -------- */
-  .modal{
-    display:none;
-    position:fixed;
-    z-index:999;
-    left:0;
-    top:0;
-    width:100%;
-    height:100%;
-    background:rgba(0,0,0,.7);
-  }
-  .modal-content{
-    background:#1b263b;
-    margin:10% auto;
-    padding:25px;
-    border-radius:12px;
-    width:90%;
-    max-width:600px;
-    color:#ffff00;
-    font-size:15px;
-    line-height:1.5;
-  }
-  .close{
-    color:#ffff80;
-    float:right;
-    font-size:22px;
-    font-weight:bold;
-    cursor:pointer;
-  }
-  .close:hover{color:#fff}
-  /* -------- pie -------- */
-  footer{
-    text-align:center;
-    padding:15px 10px;
-    font-size:13px;
-    background:#09101a;
-    color:#ffff80;
-    line-height:1.5;
-  }
-  @media(max-width:900px){
-    .wrap{flex-direction:column}
-    .col-left{flex:1 1 auto}
-  }
-</style>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:Segoe UI,system-ui,sans-serif;
+      background: url("{{ url_for('static', filename='uploads/fondo.jpg') }}") no-repeat center center fixed;
+      background-size: cover;
+      color:#ffff00;
+      font-size:16px;
+      line-height:1.5;
+    }
+    h1{
+      text-align:center;
+      padding:20px 0 12px;
+      font-size:2rem;
+      color:#000;
+    }
+    .ventana{
+      background:#1b263b;
+      border-radius:12px;
+      padding:20px;
+      margin:20px auto;
+      max-width:1000px;
+      color:#ffff00;
+    }
+    .ventana h2{
+      text-align:center;
+      margin-bottom:15px;
+    }
+    .galeria{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:15px;
+    }
+    .galeria img{
+      width:100%;
+      height:140px;
+      object-fit:cover;
+      border-radius:8px;
+    }
+    .botones{
+      display:flex;
+      justify-content:center;
+      gap:15px;
+      margin-bottom:10px;
+    }
+    .btn{
+      background:#415a77;
+      color:#ffff00;
+      padding:10px 18px;
+      border:none;
+      border-radius:8px;
+      cursor:pointer;
+      font-size:15px;
+      text-decoration:none;
+    }
+    .btn:hover{background:#5a7fb0}
+    .jugador{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      margin-bottom:12px;
+      background:#415a77;
+      padding:10px;
+      border-radius:8px;
+    }
+    .jugador img{
+      width:60px;
+      height:60px;
+      object-fit:cover;
+      border-radius:50%;
+    }
+    .info{font-size:14px}
+    .info strong{display:block;margin-bottom:4px}
+    footer{
+      text-align:center;
+      padding:15px 10px;
+      font-size:13px;
+      background:#09101a;
+      color:#ffff80;
+    }
+    @media(max-width:900px){
+      .galeria{grid-template-columns:repeat(2,1fr)}
+    }
+  </style>
 </head>
-<!--  MODAL CARGAR PDF  -->
-<div id="pdfModal" class="modal">
-  <div class="modal-content">
-    <span class="close" onclick="document.getElementById('pdfModal').style.display='none'">&times;</span>
-    <h3>Subir PDF de jugador</h3>
+<body>
 
+  <!-- VENTANA 1: Título + Galería -->
+  <div class="ventana">
+    <h1>⚽ NIQUEE FÚTBOL CLUB</h1>
+    <div class="galeria">
+      <img src="{{ url_for('static', filename='uploads/niqueeblanco.jpg') }}" alt="Equipo 1">
+      <img src="{{ url_for('static', filename='uploads/logo.png') }}" alt="Equipo 2">
+      <img src="{{ url_for('static', filename='uploads/gruponique.jpg') }}" alt="Equipo 3">
+      <img src="{{ url_for('static', filename='uploads/niqueazul.jpg') }}" alt="Equipo 4">
+    </div>
+  </div>
+
+  <!-- VENTANA 2: Botones -->
+  <div class="ventana">
+    <div class="botones">
+      <a href="/admin" class="btn">Panel Admin</a>
+      <button class="btn" onclick="document.getElementById('infoModal').style.display='block'">+ Info</button>
+      <button class="btn" onclick="pedirClavePDF()">Cargar PDF</button>
+    </div>
+  </div>
+
+  <!-- VENTANA 3: Plantilla -->
+  <div class="ventana">
+    <h2>Plantilla de Jugadores</h2>
+    {% for j in jugadores %}
+      <div class="jugador">
+        <img src="{{ url_for('serve_img', name=j[6]) }}" alt="Foto">
+        <div class="info">
+          <strong>{{ j[1] }}</strong>
+          <span>{{ j[2] }} • {{ j[3] }}</span>
+          <span>G:{{ j[4] }} • A:{{ j[5] }}</span>
+          {% if j[7] %}
+            <a href="{{ j[7] }}" download="{{ j[1] | replace(' ', '_') }}_acta.pdf" style="color:#ffff80;font-size:13px;">📄 Descargar PDF</a>
+          {% else %}
+            <span style="font-size:12px;color:#aaa;">Sin PDF</span>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- MODALES -->
+  <div id="infoModal" class="ventana" style="display:none;position:fixed;top:20%;left:50%;transform:translateX(-50%);z-index:999;">
+    <span style="float:right;cursor:pointer;" onclick="document.getElementById('infoModal').style.display='none'">&times;</span>
+    <h3>Información del Club</h3>
+    <p>Niquee Fútbol Club nació en 2017 en Guayaquil con la filosofía de adoración a Dios, juego limpio y trabajo en equipo. Participamos en ligas barriales y torneos locales. ¡Buscamos talento honestidad y lealtad!<br>
+    Entrenamientos: lun/mié/vie 18:00-20:00 | Cancha: sintéticas fútbol Garzota samanes<br>
+    Redes: <a href="https://www.facebook.com/share/1CWH1PEHMU/" target="_blank" style="color:#ffff80">Facebook</a></p>
+  </div>
+
+  <div id="pdfModal" class="ventana" style="display:none;position:fixed;top:20%;left:50%;transform:translateX(-50%);z-index:999;">
+    <span style="float:right;cursor:pointer;" onclick="document.getElementById('pdfModal').style.display='none'">&times;</span>
+    <h3>Subir PDF de jugador</h3>
     <form id="pdfForm" enctype="multipart/form-data">
       <label>Seleccione jugador:</label>
       <select id="pdfJugador" required>
@@ -340,141 +327,48 @@ body{
           <option value="{{ j[0] }}">{{ j[1] }}</option>
         {% endfor %}
       </select>
-
       <label>Archivo PDF:</label>
       <input type="file" name="pdf" accept=".pdf" required>
-
       <button type="submit" class="btn">Subir PDF</button>
     </form>
-  </div>
-</div>
-
-<script>
-  // Enviar PDF vía JS para evitar recargar la página
-  document.getElementById('pdfForm').addEventListener('submit', function (e) {
-    e.preventDefault();
-
-    const id   = document.getElementById('pdfJugador').value;
-    const file = this.pdf.files[0];
-    if (!file) return;
-
-    console.log('ID →', id);
-    console.log('URL →', '/subir_pdf/' + id);
-
-    const fd = new FormData();
-    fd.append('pdf', file);
-    fetch('https://appniquee.onrender.com/subir_pdf/' + encodeURIComponent(id), {
-   
-      method: 'POST',
-      body: fd
-    })
-      .then(() => location.reload())
-      .catch(() => alert('Error al subir'));
-  });
-</script>
-<body>
-  <h1>⚽ NIQUEE FÚTBOL CLUB</h1>
-
-  <div class="wrap">
-    <!--  COLUMNA IZQUIERDA  -->
-    <section class="col-left">
-      <div class="logo-titulo">
-        <img src="{{ url_for('static', filename='uploads/logonegronique.jpg') }}" alt="Logo">
-        <h2>Plantilla de jugadores</h2>
-      </div>
-    {% for j in jugadores %}
-<div class="player">
-  <img src="{{ url_for('serve_img', name=j[6]) }}" alt="Foto">
-  <div class="info">
-    <strong>{{ j[1] }}</strong>
-    <span>{{ j[2] }} • {{ j[3] }}</span>
-    <span>G:{{ j[4] }} • A:{{ j[5] }}</span>
-    {% if j[7] %}
-     <a href="{{ j[7] }}" download="{{ j[1] | replace(' ', '_') }}_acta.pdf" style="color:#ffff80; font-size:13px;">📄 Descargar PDF</a>
-    {% else %}
-      <span style="font-size:12px;color:#aaa;">Sin PDF</span>
-    {% endif %}
-  </div>
-</div>
-{% endfor %}
-
-   <!-- TÍTULO SUPERIOR CENTRADO -->
-<div class="titulo-superior" style="text-align:center; margin:20px 0;">
-  <h1 style="color:#000; font-size:2rem;">NIQUEE FÚTBOL CLUB</h1>
-</div>
-
-<!-- CUADRO CENTRAL (botones + 4 fotos) -->
-<div class="cuadro-central" style="margin:20px auto; max-width:800px; background:#1b263b; border-radius:12px; padding:20px;">
-  <!-- Botones dentro del cuadro -->
-  <div class="botones-cuadro" style="display:flex; justify-content:center; gap:15px; margin-bottom:20px;">
-    <a href="/admin" class="btn">Panel Admin</a>
-    <button class="btn" onclick="document.getElementById('infoModal').style.display='block'">+ Info</button>
-    <button class="btn" onclick="pedirClavePDF()">Cargar PDF</button>
-  </div>
-
-  <!-- 4 fotos del equipo dentro del mismo cuadro -->
-  <div class="fotos-cuadro" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:15px; justify-items:center; margin-top:10px;">
-    <img src="{{ url_for('static', filename='uploads/niqueeblanco.jpg') }}" alt="Equipo 1" style="width:100%; height:140px; object-fit:cover; border-radius:8px;">
-    <img src="{{ url_for('static', filename='uploads/logo.png') }}" alt="Equipo 2" style="width:100%; height:140px; object-fit:cover; border-radius:8px;">
-    <img src="{{ url_for('static', filename='uploads/gruponique.jpg') }}" alt="Equipo 3" style="width:100%; height:140px; object-fit:cover; border-radius:8px;">
-    <img src="{{ url_for('static', filename='uploads/niqueazul.jpg') }}" alt="Equipo 4" style="width:100%; height:140px; object-fit:cover; border-radius:8px;">
-  </div>
-</div>
-
-<!-- PLANTILLA DE JUGADORES (debajo del cuadro) -->
-<div class="plantilla-jugadores" style="margin:20px 0;">
-  {% for j in jugadores %}
-  <div class="player" style="display:flex; align-items:center; gap:12px; margin-bottom:12px; background:#415a77; padding:10px; border-radius:8px;">
-    <img src="{{ url_for('serve_img', name=j[6]) }}" alt="Foto" style="width:60px; height:60px; object-fit:cover; border-radius:50%;">
-    <div class="info" style="font-size:14px;">
-      <strong>{{ j[1] }}</strong>
-      <span>{{ j[2] }} • {{ j[3] }}</span>
-      <span>G:{{ j[4] }} • A:{{ j[5] }}</span>
-      {% if j[7] %}
-        <a href="{{ j[7] }}" download="{{ j[1] | replace(' ', '_') }}_acta.pdf" style="color:#ffff80; font-size:13px;">📄 Descargar PDF</a>
-      {% else %}
-        <span style="font-size:12px;color:#aaa;">Sin PDF</span>
-      {% endif %}
-    </div>
-  </div>
-  {% endfor %}
-</div>
-
-  <!--  MODAL  -->
-  <div id="infoModal" class="modal">
-    <div class="modal-content">
-      <span class="close" onclick="document.getElementById('infoModal').style.display='none'">&times;</span>
-      <h3>Información del Club</h3>
-      <p>
-        Niquee Fútbol Club nació en 2017 en Guayaquil con la filosofía de adoración a Dios, juego limpio y trabajo en equipo.
-        Participamos en ligas barriales y torneos locales. ¡Buscamos talento honestidad y lealtad!<br>
-        Entrenamientos: lun/mié/vie 18:00-20:00 | Cancha: sintéticas fútbol Garzota samanes<br>
-        Redes: <a href="https://www.facebook.com/share/1CWH1PEHMU/  " target="_blank" style="color:#ffff80">Facebook</a>
-      </p>
-    </div>
   </div>
 
   <footer>
     @transguthler&asociados • fonos 593958787986-593992123592<br>
-    cguthler@hotmail.com • <a href="https://www.facebook.com/share/1CWH1PEHMU/  " target="_blank" style="color:#ffff80">fb.me/share/1CWH1PEHMU</a><br>
+    cguthler@hotmail.com • <a href="https://www.facebook.com/share/1CWH1PEHMU/" target="_blank" style="color:#ffff80">fb.me/share/1CWH1PEHMU</a><br>
     Guayaquil – Ecuador
   </footer>
 
-<script>
-  const PDF_CLAVE_CORRECTA = "{{ PDF_PASSWORD }}";  // la pasamos desde Flask
+  <script>
+    const PDF_CLAVE_CORRECTA = "{{ PDF_PASSWORD }}";
 
-  function pedirClavePDF() {
-    const intro = prompt("Introduce la contraseña para cargar PDF:");
-    if (intro === PDF_CLAVE_CORRECTA) {
-      document.getElementById('pdfModal').style.display = 'block';
-    } else if (intro !== null) {   // null = Cancelar
-      alert("❌ Contraseña incorrecta");
+    function pedirClavePDF() {
+      const intro = prompt("Introduce la contraseña para cargar PDF:");
+      if (intro === PDF_CLAVE_CORRECTA) {
+        document.getElementById('pdfModal').style.display = 'block';
+      } else if (intro !== null) {
+        alert("❌ Contraseña incorrecta");
+      }
     }
-  }
-</script>
+
+    document.getElementById('pdfForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const id = document.getElementById('pdfJugador').value;
+      const file = this.pdf.files[0];
+      if (!file) return;
+
+      const fd = new FormData();
+      fd.append('pdf', file);
+      fetch('/subir_pdf/' + encodeURIComponent(id), {
+        method: 'POST',
+        body: fd
+      })
+      .then(() => location.reload())
+      .catch(() => alert('Error al subir'));
+    });
+  </script>
 </body>
 </html>
-"""
 
 ADMIN_LOGIN_HTML = """
 <form method="post" style="max-width:300px;margin:auto">
