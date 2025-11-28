@@ -390,7 +390,7 @@ body{
     <span>{{ j[2] }} • {{ j[3] }}</span>
     <span>G:{{ j[4] }} • A:{{ j[5] }}</span>
     {% if j[7] %}
-      <a href="{{ j[7] }}" target="_blank" style="color:#ffff80; font-size:13px;">📄 Ver PDF</a>
+     <a href="{{ j[7] }}" download="{{ j[1] | replace(' ', '_') }}_acta.pdf" style="color:#ffff80; font-size:13px;">📄 Descargar PDF</a>
     {% else %}
       <span style="font-size:12px;color:#aaa;">Sin PDF</span>
     {% endif %}
@@ -405,7 +405,7 @@ body{
         <button class="btn" onclick="document.getElementById('infoModal').style.display='block'">+ Info</button>
        <button class="btn" onclick="pedirClavePDF()">Cargar PDF</button>
       </div>
-      <h2>Fotos del Equipo</h2>
+      <h2>Galería</h2>
       <div class="gallery">
         <img src="{{ url_for('static', filename='uploads/niqueeblanco.jpg') }}" alt="Equipo 1">
         <img src="{{ url_for('static', filename='uploads/logo.png') }}" alt="Equipo 2">
