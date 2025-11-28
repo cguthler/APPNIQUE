@@ -179,7 +179,7 @@ INDEX_HTML = """
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <title>⚽ NIQUÉE FUTBOL CLUB</title>
+  <title>&#9917; NIQU&#201;E FUTBOL CLUB</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
@@ -270,7 +270,7 @@ INDEX_HTML = """
 
   <!-- VENTANA 1: Título + Galería -->
   <div class="ventana">
-    <h1>⚽ NIQUEE FÚTBOL CLUB</h1>
+  <h1>&#9917; NIQUEE FÚTBOL CLUB</h1>
     <div class="galeria">
       <img src="{{ url_for('static', filename='uploads/niqueeblanco.jpg') }}" alt="Equipo 1">
       <img src="{{ url_for('static', filename='uploads/logo.png') }}" alt="Equipo 2">
@@ -347,7 +347,7 @@ INDEX_HTML = """
       if (intro === PDF_CLAVE_CORRECTA) {
         document.getElementById('pdfModal').style.display = 'block';
       } else if (intro !== null) {
-        alert("❌ Contraseña incorrecta");
+       alert("\u274C Contraseña incorrecta");
       }
     }
 
@@ -394,8 +394,8 @@ ADMIN_PANEL_HTML = """
 {% for j in jugadores %}
   <div>
     <strong>{{ j[1] }}</strong> |
-    <a href="{{ j[7] }}" target="_blank">📄 Ver PDF</a> |
-    <a href="/borrar/{{ j[0] }}" onclick="return confirm('¿Borrar?')">🗑️ Borrar</a>
+    <a href="{{ j[7] }}" target="_blank">&#128196; Ver PDF</a>
+    <a href="/borrar/{{ j[0] }}" onclick="return confirm('¿Borrar?')">&#128465; Borrar</a>
   </div>
 {% endfor %}
 """
