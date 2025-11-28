@@ -382,8 +382,8 @@ body{
         <img src="{{ url_for('static', filename='uploads/logonegronique.jpg') }}" alt="Logo">
         <h2>Plantilla de jugadores</h2>
       </div>
-      {% for j in jugadores %}
-      <div class="player">
+    {% for j in jugadores %}
+<div class="player">
   <img src="{{ url_for('serve_img', name=j[6]) }}" alt="Foto">
   <div class="info">
     <strong>{{ j[1] }}</strong>
@@ -396,6 +396,7 @@ body{
     {% endif %}
   </div>
 </div>
+{% endfor %}
 
     <!--  COLUMNA DERECHA  -->
     <section class="col-right">
