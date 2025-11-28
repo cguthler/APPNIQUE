@@ -144,7 +144,7 @@ def subir_pdf(jugador_id):
     conn.close()
 
     return redirect(url_for("index"))
-    return "Archivo no válido", 400
+   
 
 @app.route("/uploads/<path:name>")
 def serve_img(name):
@@ -478,14 +478,15 @@ ADMIN_PANEL_HTML = """
     <a href="/borrar/{{ j[0] }}" onclick="return confirm('¿Borrar?')">🗑️ Borrar</a>
   </div>
 {% endfor %}
+"""
 @app.route("/")
 def index():
-    init_db()  # por si aún no existe la tabla
+    init_db()
     conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
     cursor.execute(
-    "SELECT id, nombre, anio_nacimiento, posicion, goles, asistencias, imagen, pdf_url FROM jugadores ORDER BY id DESC"
-)
+        "SELECT id, nombre, anio_nacimiento, posicion, goles, asistencias, imagen, pdf_url FROM jugadores ORDER BY id DESC"
+    )
     jugadores = cursor.fetchall()
     conn.close()
     return render_template_string(INDEX_HTML, jugadores=jugadores, PDF_PASSWORD=PDF_PASSWORD)
