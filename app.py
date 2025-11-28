@@ -191,12 +191,12 @@ INDEX_HTML = """
       font-size:16px;
       line-height:1.5;
     }
-    h1{
+    h1 {
       text-align:center;
       padding:20px 0 12px;
       font-size:2rem;
-      color:#000;
-    }
+      color:#00ff00;     /* verde intenso */
+    } 
     .ventana{
       background:#1b263b;
       border-radius:12px;
