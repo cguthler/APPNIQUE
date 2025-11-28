@@ -299,7 +299,7 @@ INDEX_HTML = """
           <span>{{ j[2] }} • {{ j[3] }}</span>
           <span>G:{{ j[4] }} • A:{{ j[5] }}</span>
           {% if j[7] %}
-            <a href="{{ j[7] }}" download="{{ j[1] | replace(' ', '_') }}_acta.pdf" style="color:#ffff80;font-size:13px;">📄 Descargar PDF</a>
+            <a href="{{ j[7] }}" download="{{ j[1] | replace(' ', '_') }}_acta.pdf" style="color:#ffff80; font-size:13px;">&#128196; Descargar PDF</a>
           {% else %}
             <span style="font-size:12px;color:#aaa;">Sin PDF</span>
           {% endif %}
