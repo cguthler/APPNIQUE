@@ -476,7 +476,7 @@ INDEX_HTML = """
     <h3>Formulario de Inscripción</h3>
     <form id="formInscripcion" onsubmit="guardarInscripcion(event)">
       <label>Nombres completos:</label>
-      <input type="text" id="nombres" list="listaJugadores" required autocomplete="off">
+      <input type="text" id="nombres" list="listaJugadores" placeholder="Escribe para ver jugadores" required autocomplete="off">
       <datalist id="listaJugadores"></datalist>
 
       <label>Cédula de ciudadanía:</label>
