@@ -185,7 +185,7 @@ def api_inscripciones():
     )
     conn.commit()
     conn.close()
-    return {"message": "Inscripción registrada en estado PENDIENTE. Realice el pago para confirmar."}
+    return {"message": "Inscripción registrada. realiza el pago para confirmar participación."}
 @app.route("/uploads/<path:name>")
 def serve_img(name):
     if RENDER:
@@ -497,7 +497,7 @@ INDEX_HTML = """
         <option>Otros</option>
       </select>
 
-      <button type="submit" class="btn" style="width:100%; margin-top:15px;">Registrar (PENDIENTE)</button>
+      <button type="submit" class="btn" style="width:100%; margin-top:15px;">Registrar</button>
     </form>
   </div>
 
