@@ -28,7 +28,8 @@ os.makedirs(UPLOAD_IMG, exist_ok=True)
 os.makedirs(UPLOAD_DOCS, exist_ok=True)
 
 ADMIN_PASSWORD = "jeremias123"
-PDF_PASSWORD = "equipo"   # <-- cambia aquí tu clave
+PDF_PASSWORD = "guthler"   # <-- cambia aquí tu clave
+FORM_PASSWORD = "guthler123"   # ← contraseña nueva solo para el formulario
 
 # ---------- BD ----------
 def init_db():
@@ -47,7 +48,17 @@ def init_db():
                 pdf TEXT
             )
         """)
-
+        cur.execute(""" 
+            CREATE TABLE IF NOT EXISTS inscripciones (
+                id SERIAL PRIMARY KEY,
+                jugador_id INTEGER REFERENCES jugadores(id),
+                cedula TEXT,
+                anio_nacimiento INTEGER,
+                torneo TEXT,
+                estado TEXT DEFAULT 'PENDIENTE',
+                fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
         # ✅ Columna nueva para URL de Cloudinary
         cur.execute("""
             ALTER TABLE jugadores
@@ -145,7 +156,36 @@ def subir_pdf(jugador_id):
 
     return redirect(url_for("index"))
    
+# ---------- API: lista de jugadores para autocompletar ----------
+@app.route("/api/jugadores")
+def api_jugadores():
+    conn = psycopg2.connect(DATABASE_URL)
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, nombre FROM jugadores ORDER BY nombre")
+    rows = cursor.fetchall()
+    conn.close()
+    return {"jugadores": [{"id": r[0], "nombre": r[1]} for r in rows]}
 
+# ---------- API: guardar inscripción ----------
+@app.route("/api/inscripciones", methods=["POST"])
+def api_inscripciones():
+    data = request.get_json()
+    jugador_id = data.get("jugador_id")
+    cedula     = data.get("cedula")
+    anio       = data.get("anio")
+    torneo     = data.get("torneo")
+    if not all([jugador_id, cedula, anio, torneo]):
+        return {"message": "Faltan datos"}, 400
+
+    conn = psycopg2.connect(DATABASE_URL)
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO inscripciones (jugador_id, cedula, anio_nacimiento, torneo, estado) VALUES (%s, %s, %s, %s, 'PENDIENTE')",
+        (jugador_id, cedula, anio, torneo)
+    )
+    conn.commit()
+    conn.close()
+    return {"message": "Inscripción registrada en estado PENDIENTE. Realice el pago para confirmar."}
 @app.route("/uploads/<path:name>")
 def serve_img(name):
     if RENDER:
@@ -195,7 +235,7 @@ INDEX_HTML = """
       text-align:center;
       padding:20px 0 12px;
       font-size:2rem;
-      color:#00ff00;     /* verde intenso */
+      color:#00ff00;
     } 
     .ventana{
       background:#1b263b;
@@ -285,6 +325,7 @@ INDEX_HTML = """
       <a href="/admin" class="btn">Panel Admin</a>
       <button class="btn" onclick="document.getElementById('infoModal').style.display='block'">+ Info</button>
       <button class="btn" onclick="pedirClavePDF()">Cargar PDF</button>
+      <button class="btn" onclick="abrirModal()">Formulario</button>
     </div>
   </div>
 
@@ -316,7 +357,7 @@ INDEX_HTML = """
       Niquee Fútbol Club nació en 2017 en Guayaquil con la filosofía de adoración a Dios, juego limpio y trabajo en equipo.
       Participamos en ligas barriales y torneos locales. ¡Buscamos talento honestidad y lealtad!<br>
       Entrenamientos: lun/mié/vie 18:00-20:00 | Cancha: sintéticas fútbol Garzota samanes<br>
-      Redes: <a href="https://www.facebook.com/share/1CWH1PEHMU/" target="_blank" style="color:#ffff80">Facebook</a>
+      Redes: <a href="https://www.facebook.com/share/1CWH1PEHMU/ " target="_blank" style="color:#ffff80">Facebook</a>
     </p>
   </div>
 
@@ -338,12 +379,13 @@ INDEX_HTML = """
 
   <footer>
     @transguthler&amp;asociados • fonos 593958787986-593992123592<br>
-    cguthler@hotmail.com • <a href="https://www.facebook.com/share/1CWH1PEHMU/" target="_blank" style="color:#ffff80">fb.me/share/1CWH1PEHMU</a><br>
+    cguthler@hotmail.com • <a href="https://www.facebook.com/share/1CWH1PEHMU/ " target="_blank" style="color:#ffff80">fb.me/share/1CWH1PEHMU</a><br>
     Guayaquil – Ecuador
   </footer>
 
   <script>
     const PDF_CLAVE_CORRECTA = "{{ PDF_PASSWORD }}";
+    const FORM_CLAVE_CORRECTA = "{{ FORM_PASSWORD }}";
 
     function pedirClavePDF() {
       const intro = prompt("Introduce la contraseña para cargar PDF:");
@@ -369,7 +411,96 @@ INDEX_HTML = """
       .then(() => location.reload())
       .catch(() => alert('Error al subir'));
     });
+
+    /* ---------- MODAL INSCRIPCIÓN ---------- */
+    let jugadoresList = []; // [{id, nombre}, ...]
+
+    /* Cargar jugadores al iniciar */
+    (async () => {
+      try {
+        const res = await fetch('/api/jugadores');
+        const data = await res.json();
+        jugadoresList = data.jugadores;
+        const datalist = document.getElementById('listaJugadores');
+        jugadoresList.forEach(j => {
+          const opt = document.createElement('option');
+          opt.value = j.nombre;
+          datalist.appendChild(opt);
+        });
+      } catch (e) {
+        console.error('No se pudieron cargar jugadores', e);
+      }
+    })();
+
+   function abrirModal() {
+  const clave = prompt("Contraseña de administrador para inscripciones:");
+  if (clave === FORM_CLAVE_CORRECTA) {
+    document.getElementById('modalInscripcion').style.display = 'block';
+  } else if (clave !== null) {
+    alert("❌ Contraseña incorrecta");
+  }
+}
+    function cerrarModal() {
+      document.getElementById('modalInscripcion').style.display = 'none';
+      document.getElementById('formInscripcion').reset();
+    }
+
+    async function guardarInscripcion(e) {
+      e.preventDefault();
+      const nombre = document.getElementById('nombres').value.trim();
+      const jugador = jugadoresList.find(j => j.nombre === nombre);
+      if (!jugador) {
+        alert('Seleccione un jugador de la lista.');
+        return;
+      }
+      const payload = {
+        jugador_id: jugador.id,
+        cedula: document.getElementById('cedula').value.trim(),
+        anio: document.getElementById('anio').value,
+        torneo: document.getElementById('torneo').value
+      };
+      const r = await fetch('/api/inscripciones', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(payload)
+      });
+      const res = await r.json();
+      alert(res.message);
+      cerrarModal();
+    }
   </script>
+
+  <!-- Modal Inscripción -->
+  <div id="modalInscripcion" class="ventana" style="display:none; position:fixed; top:10%; left:50%; transform:translateX(-50%); z-index:9999; max-width:480px; width:90%;">
+    <span style="float:right;cursor:pointer;" onclick="cerrarModal()">&times;</span>
+    <h3>Formulario de Inscripción</h3>
+    <form id="formInscripcion" onsubmit="guardarInscripcion(event)">
+      <label>Nombres completos:</label>
+      <input type="text" id="nombres" list="listaJugadores" required autocomplete="off">
+      <datalist id="listaJugadores"></datalist>
+
+      <label>Cédula de ciudadanía:</label>
+      <input type="text" id="cedula" pattern="\d+" title="Solo números" required>
+
+      <label>Año de nacimiento:</label>
+      <input type="number" id="anio" min="1900" max="2100" required>
+
+      <label>Torneo:</label>
+      <select id="torneo" required>
+        <option value="">-- Seleccione --</option>
+        <option>Liga Futbol Fest</option>
+        <option>Liga Internacional World Cup 2026</option>
+        <option>Liga Samanes</option>
+        <option>Liga Miraflores</option>
+        <option>Liga Mucho Lote</option>
+        <option>Duran Amateur League</option>
+        <option>Otros</option>
+      </select>
+
+      <button type="submit" class="btn" style="width:100%; margin-top:15px;">Registrar (PENDIENTE)</button>
+    </form>
+  </div>
+
 </body>
 </html>
 """
@@ -412,8 +543,7 @@ def index():
     )
     jugadores = cursor.fetchall()
     conn.close()
-    return render_template_string(INDEX_HTML, jugadores=jugadores, PDF_PASSWORD=PDF_PASSWORD)
-
+    return render_template_string(INDEX_HTML, jugadores=jugadores, PDF_PASSWORD=PDF_PASSWORD, FORM_PASSWORD=FORM_PASSWORD)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
