@@ -326,6 +326,7 @@ INDEX_HTML = """
       <button class="btn" onclick="document.getElementById('infoModal').style.display='block'">+ Info</button>
       <button class="btn" onclick="pedirClavePDF()">Cargar PDF</button>
       <button class="btn" onclick="abrirModal()">Formulario</button>
+      <button class="btn" onclick="abrirModulo()">Módulo</button>
     </div>
   </div>
 
@@ -500,7 +501,36 @@ INDEX_HTML = """
       <button type="submit" class="btn" style="width:100%; margin-top:15px;">Registrar</button>
     </form>
   </div>
+<script>
+  const PASS_MODULO = "futbol2025";
+  function abrirModulo() {
+    if(prompt("Contraseña del módulo:") === PASS_MODULO) {
+      document.getElementById('moduloModal').style.display = 'block';
+    } else {
+      alert("❌ Contraseña incorrecta");
+    }
+  }
+</script>
 
+<!-- Modal Módulo -->
+<div id="moduloModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="document.getElementById('moduloModal').style.display='none'">&times;</span>
+    <h3>Lecciones del Módulo</h3>
+    <div class="list-group">
+      <a href="/leccion/1" class="list-group-item">Lección 1: Fundamentos y reglas</a>
+      <a href="/leccion/2" class="list-group-item">Lección 2: Pararse donde hay que pararse</a>
+      <a href="/leccion/3" class="list-group-item">Lección 3: Abrir la cancha sin correr demasiado</a>
+      <a href="/leccion/4" class="list-group-item">Lección 4: Qué hacer cuando se tiene la pelota</a>
+      <a href="/leccion/5" class="list-group-item">Lección 5: Qué hacer cuando no se tiene la pelota</a>
+      <a href="/leccion/6" class="list-group-item">Lección 6: Leer al rival antes de que actúe</a>
+      <a href="/leccion/7" class="list-group-item">Lección 7: Salir jugando sin regalarla</a>
+      <a href="/leccion/8" class="list-group-item">Lección 8: Llegar al área sin amontonarse</a>
+      <a href="/leccion/9" class="list-group-item">Lección 9: Córners y saques: aprovecharlos y no sufrirlos</a>
+      <a href="/leccion/10" class="list-group-item">Lección 10: Mañas que el árbitro no castiga</a>
+    </div>
+  </div>
+</div>
 </body>
 </html>
 """
@@ -545,5 +575,181 @@ def index():
     conn.close()
     return render_template_string(INDEX_HTML, jugadores=jugadores, PDF_PASSWORD=PDF_PASSWORD, FORM_PASSWORD=FORM_PASSWORD)
 
+# ---------- LECCIÓN 1 ----------
+LECCION_1_HTML = """
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Lección 1 - Fundamentos y reglas</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body{background:#1b263b;color:#ffff00;font-family:Segoe UI,system-ui,sans-serif}
+    .timer-bar{width:100%;height:6px;background:#eee;margin-bottom:8px}
+    .timer-fill{height:100%;background:#0d6efd;transition:width 1s linear}
+  </style>
+</head>
+<body class="p-4">
+  <div class="container" style="max-width:700px">
+    <h4>Lección 1: Fundamentos y reglas del fútbol</h4>
+    <div class="mt-3 p-3 bg-dark rounded small">
+      <p>
+        Listos para el partido esperado, el árbitro coloca el balón sobre el círculo central y pita el inicio. Cada jugador entiende que:<br>
+        Primero, <strong>la mano</strong>: solo el portero puede usarla y solo dentro del rectángulo. Cualquier otro contacto es falta inmediata y, en el área, penal.<br>
+        Segundo, <strong>el offside</strong>: si al recibir estás más cerca del arco que el último defensa, el banderín levanta y la jugada muere.<br>
+        Tercero, <strong>el saque de banda</strong>: dos pies en el campo, balón detrás de la cabeza; si uno se adelanta o la tira mal, pierdes el saque.<br><br>
+
+        Con las reglas claras, llegan los <strong>fundamentos</strong>:<br>
+        - Controlar con el interior del pie o pisarla, no con el empeine, para que la pelota se detenga junto al pie y no tres metros adelante.<br>
+        - Pasar con el interior, tobillo firme, al pie bueno del compañero: reduce un toque y evita el rebote.<br>
+        - Disparar mirando al portero, no pensar al que dirán, y apuntar al poste cercano.<br>
+        - En defensa, marcar de costado, brazo extendido, sin derribar.<br>
+        - Desmarcarse antes de pedir: dos pasos al espacio y una señal con la mano bastan para romper líneas sin offside.<br>
+        - En saques laterales, destinarla al jugador delante nuestro más cercano, llamándole la atención.<br><br>
+
+        Las <strong>mañas</strong> permiten ganar segundos:<br>
+        - Provocar que el balón golpee en las piernas del rival para ganar corners o laterales.<br>
+        - Sacar rápido de banda mientras el otro discute.<br>
+        - Descansar con la pelota dirigiendo el juego hacia el portero nuestro para tomar aliento y volver a empezar.<br><br>
+
+        Pero aparecen los <strong>errores típicos del juego amateur</strong>:<br>
+        - Protestar cada pitazo: amarilla gratuita, reclamarse entre nosotros muestra un equipo nervioso.<br>
+        - Correr todos tras la pelota: se cierra el campo y desaparecen los pases.<br>
+        - Pedirla estático: el defensa ya te tapa y perdés en la primera.<br>
+        - Quedarse mirando la jugada: el rival contraataca y te coge parado en ventaja.<br>
+        - Olvidan volver después de una buena jugada, no marcar hombre a hombre en saques laterales rivales y tiros de esquina.<br>
+        - Salir desde el área por el centro no es recomendable, <strong>SALGA POR LOS LATERALES O A LA RAYA</strong>.<br><br>
+
+        Cuando el árbitro pita el final, el equipo que supo conjugar reglas, fundamentos y pequeñas dosis de profesionalismo se lleva los tres puntos y la satisfacción de haber jugado al fútbol sin sobresaltos ni reclamos.
+      </p>
+    </div>
+
+    <h5 class="mt-4">Test (10 preguntas • 6 s cada una)</h5>
+    <div id="testArea"></div>
+    <div id="resultArea" class="mt-3"></div>
+  </div>
+
+<script>
+const TIME_PER_Q = 6;
+const preguntas = [
+  {q:"¿Quién puede usar las manos dentro del rectángulo?",opts:["Cualquier jugador","Solo el portero","El capitán","Nadie"],ok:1},
+  {q:"¿Qué ocurre si estás más cerca del arco que el último defensa al recibir un pase?",opts:["Gol válido","Falta directa","Offside","Saque de meta"],ok:2},
+  {q:"¿Cómo se debe realizar el saque de banda?",opts:["Con un pie en la línea","Saltando","Dos pies en el campo y pelota detrás de la cabeza","Con la mano"],ok:2},
+  {q:"¿Dónde se cobra un penal?",opts:["Desde el círculo central","Desde el punto penal","Desde la banda","Desde el corner"],ok:1},
+  {q:"¿Con qué parte del pie se recomienda controlar un balón alto?",opts:["Empeine","Planta o interior","Talón","Rodilla"],ok:1},
+  {q:"¿A qué pie se le debe pasar la pelota al compañero?",opts:["Al pie malo","Al que esté más cerca","Al pie bueno","Al que pida de talón"],ok:2},
+  {q:"¿A qué poste se recomienda apuntar al disparar?",opts:["Al que esté más lejos","Al palo cercano","Al árbitro","Al cielo"],ok:1},
+  {q:"¿Cómo se debe marcar al rival?",opts:["Por detrás","De frente","De costado, brazo extendido, sin derribar","Corriendo tras él"],ok:2},
+  {q:"¿Qué se debe hacer antes de pedir la pelota?",opts:["Quedarse quieto","Gritar más fuerte","Desmarcarse con dos pasos y señalar","Esperar al árbitro"],ok:2},
+  {q:"¿Qué error evita el equipo que quiere mantener el orden?",opts:["Salir por el centro del área","Pase largo","Tiro al arco","Corners"],ok:0}
+];
+
+let idx = 0, aciertos = 0, timer = null;
+
+function mostrarPregunta(){
+  const p = preguntas[idx];
+  let html = `<div class="timer-bar"><div class="timer-fill" style="width:100%"></div></div>
+              <b>Pregunta ${idx+1}/10</b> – ${p.q}<br><small id="countdown">${TIME_PER_Q}s</small><div class="mt-2">`;
+  p.opts.forEach((o,k)=> html += `
+    <div class="form-check">
+      <input class="form-check-input" type="radio" name="opt" id="o${k}" value="${k}">
+      <label class="form-check-label" for="o${k}">${o}</label>
+    </div>`);
+  html += `</div>`;
+  document.getElementById('testArea').innerHTML = html;
+
+  let seg = TIME_PER_Q;
+  const bar = document.querySelector('.timer-fill');
+  const txt = document.getElementById('countdown');
+  timer = setInterval(()=>{
+    seg--;
+    bar.style.width = (seg/TIME_PER_Q*100) + '%';
+    txt.textContent = seg + 's';
+    if(seg === 0){clearInterval(timer); timeOut();}
+  },1000);
+}
+
+function timeOut(){
+  alert("Se acabó el tiempo. Volvé a intentarlo.");
+  location.href = "/";
+}
+
+function corregir(){
+  const sel = document.querySelector('input[name="opt"]:checked');
+  if(!sel){alert("Elegí una opción."); return;}
+  clearInterval(timer);
+  if(parseInt(sel.value) === preguntas[idx].ok) aciertos++;
+  idx++;
+  if(idx < 10){ mostrarPregunta(); } else { finalizar(); }
+}
+
+function finalizar(){
+  const total = preguntas.length;
+  if(aciertos === total){
+    localStorage.setItem("modulo1","aprobado");
+    document.getElementById('resultArea').innerHTML =
+      `<div class="alert alert-success">Usted aprobó el módulo. ¡Felicitaciones, está listo para jugar su partido!</div>`;
+
+    // Guardar en base de datos
+    fetch("/guardar_aprobacion", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        jugador_id: 1,
+        leccion_numero: 1,
+        nota: aciertos
+      })
+    });
+
+  }else{
+    document.getElementById('resultArea').innerHTML =
+      `<div class="alert alert-warning">Respondiste ${aciertos}/${total}. Necesitas 10/10 para aprobar.</div>`;
+    setTimeout(()=> location.href = "/", 3000);
+  }
+}
+
+mostrarPregunta();
+</script>
+</body>
+</html>
+"""
+# ---------- VERIFICAR APROBACIONES ----------
+@app.route("/ver_lecciones")
+def ver_lecciones():
+    conn = psycopg2.connect(DATABASE_URL)
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT j.nombre, l.leccion_numero, l.fecha_aprobado, l.nota
+        FROM lecciones_aprobadas l
+        JOIN jugadores j ON j.id = l.jugador_id
+        ORDER BY l.fecha_aprobado DESC
+    """)
+    rows = cursor.fetchall()
+    conn.close()
+
+    html = "<h2>Lecciones Aprobadas</h2><table border='1' cellpadding='6'><tr><th>Jugador</th><th>Lección</th><th>Fecha</th><th>Nota</th></tr>"
+    for row in rows:
+        html += f"<tr><td>{row[0]}</td><td>{row[1]}</td><td>{row[2]}</td><td>{row[3]}/10</td></tr>"
+    html += "</table>"
+    return html
+
+# ---------- GUARDAR APROBACIÓN (Aiven) ----------
+@app.route("/guardar_aprobacion", methods=["POST"])
+def guardar_aprobacion():
+    data = request.get_json()
+    jugador_id = data.get("jugador_id")
+    leccion_numero = data.get("leccion_numero")
+    nota = data.get("nota")
+
+    conn = psycopg2.connect(DATABASE_URL)  # esto apunta a Aiven
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO lecciones_aprobadas (jugador_id, leccion_numero, nota) VALUES (%s, %s, %s)",
+        (jugador_id, leccion_numero, nota)
+    )
+    conn.commit()
+    conn.close()
+    return {"status": "ok"}, 200
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
