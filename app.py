@@ -28,7 +28,7 @@ os.makedirs(UPLOAD_IMG, exist_ok=True)
 os.makedirs(UPLOAD_DOCS, exist_ok=True)
 
 ADMIN_PASSWORD = "jeremias123"
-PDF_PASSWORD = "guthler"   # <-- cambia aquí tu clave
+PDF_PASSWORD = "niquee"   # <-- cambia aquí tu clave
 FORM_PASSWORD = "guthler123"   # ← contraseña nueva solo para el formulario
 
 # ---------- BD ----------
