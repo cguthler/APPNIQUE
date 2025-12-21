@@ -503,15 +503,42 @@ INDEX_HTML = """
   </div>
 <script>
   const PASS_MODULO = "futbol2025";
-  function abrirModulo() {
-    if(prompt("Contraseña del módulo:") === PASS_MODULO) {
-      document.getElementById('moduloModal').style.display = 'block';
-    } else {
-      alert("❌ Contraseña incorrecta");
-    }
+ function abrirModulo() {
+  if(prompt("Contraseña del módulo:") === PASS_MODULO) {
+    const modal = document.getElementById('moduloModal');
+    modal.style.display = 'block';
+    modal.innerHTML = `
+      <h4>Módulo 1 – Fundamentos</h4>
+      <div class="list-group">
+        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(1)">Lección 1: Fundamentos y reglas</a>
+        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(2)">Lección 2: Pase interior</a>
+        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(3)">Lección 3: Conducción</a>
+        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(4)">Lección 4: Control orientado</a>
+        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(5)">Lección 5: Presión tras pérdida</a>
+        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(6)">Lección 6: Saque de banda</a>
+        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(7)">Lección 7: Corner a favor</a>
+        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(8)">Lección 8: Corner en contra</a>
+        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(9)">Lección 9: Posesión y descanso</a>
+        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(10)">Lección 10: Fair Play y actitud</a>
+      </div>
+      <button class="btn btn-sm btn-secondary mt-3" onclick="location.reload()">Cerrar</button>
+    `;
+  } else {
+    alert("❌ Contraseña incorrecta");
   }
-</script>
+}
 
+function abrirLeccionDentro(n) {
+  fetch("/leccion/" + n)
+    .then(r => r.text())
+    .then(html => {
+      document.getElementById('moduloModal').innerHTML = html;
+    });
+}
+
+function volverAlModal() {
+  location.reload();
+}
 <!-- Modal Módulo -->
 <div id="moduloModal" class="modal">
   <div class="modal-content">
@@ -634,10 +661,11 @@ LECCION_1_HTML = """
       <button class="btn-leer" onclick="mostrarTest()">Leído → Comenzar test</button>
     </div>
 
-    <!-- Aquí se insertará el test más tarde -->
-    <div id="testArea"></div>
-    <div id="resultArea" class="mt-3"></div>
-  </div>
+ <!-- Aquí se insertará el test más tarde -->
+<div id="testArea"></div>
+<div id="resultArea" class="mt-3"></div>
+<button class="btn btn-primary mt-2" onclick="corregir()">Siguiente</button>
+</div>
 
   <script>
     function mostrarTest() {
