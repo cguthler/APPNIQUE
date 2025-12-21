@@ -754,6 +754,12 @@ LECCION_1_HTML = """
       location.reload();
     }
   </script>
+ <!-- Modal Módulo -->
+<div id="moduloModal" class="ventana" style="display:none; position:fixed; top:10%; left:50%; transform:translateX(-50%); z-index:9999; max-width:800px; width:90%;">
+</div>
+
+</body>
+</html> 
 </body>
 </html>
 """ 
