@@ -508,20 +508,23 @@ INDEX_HTML = """
     const modal = document.getElementById('moduloModal');
     modal.style.display = 'block';
     modal.innerHTML = `
-      <h4>Módulo 1 – Fundamentos</h4>
-      <div class="list-group">
-        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(1)">Lección 1: Fundamentos y reglas</a>
-        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(2)">Lección 2: Pase interior</a>
-        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(3)">Lección 3: Conducción</a>
-        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(4)">Lección 4: Control orientado</a>
-        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(5)">Lección 5: Presión tras pérdida</a>
-        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(6)">Lección 6: Saque de banda</a>
-        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(7)">Lección 7: Corner a favor</a>
-        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(8)">Lección 8: Corner en contra</a>
-        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(9)">Lección 9: Posesión y descanso</a>
-        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(10)">Lección 10: Fair Play y actitud</a>
+      <div class="modal-content">
+        <span class="close" onclick="document.getElementById('moduloModal').style.display='none'">&times;</span>
+        <h3>Lecciones del Módulo</h3>
+        <div class="list-group">
+          <a href="#" class="list-group-item" onclick="abrirLeccionDentro(1)">Lección 1: Fundamentos y reglas</a>
+          <a href="#" class="list-group-item" onclick="abrirLeccionDentro(2)">Lección 2: Pase interior</a>
+          <a href="#" class="list-group-item" onclick="abrirLeccionDentro(3)">Lección 3: Conducción</a>
+          <a href="#" class="list-group-item" onclick="abrirLeccionDentro(4)">Lección 4: Control orientado</a>
+          <a href="#" class="list-group-item" onclick="abrirLeccionDentro(5)">Lección 5: Presión tras pérdida</a>
+          <a href="#" class="list-group-item" onclick="abrirLeccionDentro(6)">Lección 6: Saque de banda</a>
+          <a href="#" class="list-group-item" onclick="abrirLeccionDentro(7)">Lección 7: Corner a favor</a>
+          <a href="#" class="list-group-item" onclick="abrirLeccionDentro(8)">Lección 8: Corner en contra</a>
+          <a href="#" class="list-group-item" onclick="abrirLeccionDentro(9)">Lección 9: Posesión y descanso</a>
+          <a href="#" class="list-group-item" onclick="abrirLeccionDentro(10)">Lección 10: Fair Play y actitud</a>
+        </div>
+        <button class="btn btn-sm btn-secondary mt-3" onclick="location.reload()">Cerrar</button>
       </div>
-      <button class="btn btn-sm btn-secondary mt-3" onclick="location.reload()">Cerrar</button>
     `;
   } else {
     alert("❌ Contraseña incorrecta");
@@ -541,13 +544,13 @@ function volverAlModal() {
 }
 <!-- Modal Módulo -->
 <div id="moduloModal" class="modal">
-  <div class="modal-content">
+  <div class="modal-content">roup-item">Lección 2: Pararse donde hay que pararse</a>
+      <a href="/leccion/3" class="list-g
     <span class="close" onclick="document.getElementById('moduloModal').style.display='none'">&times;</span>
     <h3>Lecciones del Módulo</h3>
     <div class="list-group">
       <a href="/leccion/1" class="list-group-item">Lección 1: Fundamentos y reglas</a>
-      <a href="/leccion/2" class="list-group-item">Lección 2: Pararse donde hay que pararse</a>
-      <a href="/leccion/3" class="list-group-item">Lección 3: Abrir la cancha sin correr demasiado</a>
+      <a href="/leccion/2" class="list-group-item">Lección 3: Abrir la cancha sin correr demasiado</a>
       <a href="/leccion/4" class="list-group-item">Lección 4: Qué hacer cuando se tiene la pelota</a>
       <a href="/leccion/5" class="list-group-item">Lección 5: Qué hacer cuando no se tiene la pelota</a>
       <a href="/leccion/6" class="list-group-item">Lección 6: Leer al rival antes de que actúe</a>
@@ -672,7 +675,7 @@ LECCION_1_HTML = """
       // Ocultamos el botón para que no lo aprieten dos veces
       document.querySelector('.btn-leer').style.display = 'none';
 
-      const TIME_PER_Q = 6;
+      const TIME_PER_Q = 12;
       const preguntas = [
         {q:"¿Quién puede usar las manos dentro del rectángulo?",opts:["Cualquier jugador","Solo el portero","El capitán","Nadie"],ok:1},
         {q:"¿Qué ocurre si estás más cerca del arco que el último defensa al recibir un pase?",opts:["Gol válido","Falta directa","Offside","Saque de meta"],ok:2},
@@ -886,27 +889,36 @@ LECCION_1_HTML = """
         if(idx < 10){ mostrarPregunta(); } else { finalizar(); }
       }
 
-      function finalizar(){
-        const total = preguntas.length;
-        if(aciertos === total){
-          localStorage.setItem("modulo1","aprobado");
-          document.getElementById('resultArea').innerHTML =
-            `<div class="alert alert-success">Usted aprobó el módulo. ¡Felicitaciones, está listo para jugar su partido!</div>`;
-          fetch("/guardar_aprobacion", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({
-              jugador_id: 1,
-              leccion_numero: 1,
-              nota: aciertos
-            })
-          });
-        }else{
-          document.getElementById('resultArea').innerHTML =
-            `<div class="alert alert-warning">Respondiste ${aciertos}/${total}. Necesitas 10/10 para aprobar.</div>`;
-          setTimeout(()=> volverAlModal(), 3000);
-        }
-      }
+  function finalizar(){
+  const total = preguntas.length;
+  if(aciertos === total){
+    localStorage.setItem("modulo1","aprobado");
+    document.getElementById('resultArea').innerHTML =
+      `<div class="alert alert-success">Usted aprobó el módulo. ¡Felicitaciones, está listo para jugar su partido!</div>`;
+
+    fetch("/guardar_aprobacion", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        jugador_id: 1,
+        leccion_numero: 1,
+        nota: aciertos
+      })
+    });
+
+    // Botón para pasar a la siguiente lección
+    const btnSiguiente = document.createElement('button');
+    btnSiguiente.className = 'btn btn-success mt-3';
+    btnSiguiente.textContent = 'Ver siguiente lección →';
+    btnSiguiente.onclick = () => abrirLeccionDentro(2); // Lección 2 o la que quieras
+    document.getElementById('resultArea').appendChild(btnSiguiente);
+
+  } else {
+    document.getElementById('resultArea').innerHTML =
+      `<div class="alert alert-warning">Respondiste ${aciertos}/${total}. Necesitas 10/10 para aprobar.</div>`;
+    setTimeout(()=> volverAlModal(), 3000);
+  }
+} 
 
       mostrarPregunta();
     }
