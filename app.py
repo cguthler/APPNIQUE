@@ -542,24 +542,7 @@ function abrirLeccionDentro(n) {
 function volverAlModal() {
   location.reload();
 }
-<!-- Modal Módulo -->
-<div id="moduloModal" class="modal">
-  <div class="modal-content">roup-item">Lección 2: Pararse donde hay que pararse</a>
-      <a href="/leccion/3" class="list-g
-    <span class="close" onclick="document.getElementById('moduloModal').style.display='none'">&times;</span>
-    <h3>Lecciones del Módulo</h3>
-    <div class="list-group">
-      <a href="/leccion/1" class="list-group-item">Lección 1: Fundamentos y reglas</a>
-      <a href="/leccion/2" class="list-group-item">Lección 3: Abrir la cancha sin correr demasiado</a>
-      <a href="/leccion/4" class="list-group-item">Lección 4: Qué hacer cuando se tiene la pelota</a>
-      <a href="/leccion/5" class="list-group-item">Lección 5: Qué hacer cuando no se tiene la pelota</a>
-      <a href="/leccion/6" class="list-group-item">Lección 6: Leer al rival antes de que actúe</a>
-      <a href="/leccion/7" class="list-group-item">Lección 7: Salir jugando sin regalarla</a>
-      <a href="/leccion/8" class="list-group-item">Lección 8: Llegar al área sin amontonarse</a>
-      <a href="/leccion/9" class="list-group-item">Lección 9: Córners y saques: aprovecharlos y no sufrirlos</a>
-      <a href="/leccion/10" class="list-group-item">Lección 10: Mañas que el árbitro no castiga</a>
-    </div>
-  </div>
+
 </div>
 </body>
 </html>
@@ -577,7 +560,28 @@ ADMIN_PANEL_HTML = """
 <a href="/">Ver vista pública</a>
 <form method="post" action="/guardar" enctype="multipart/form-data">
   <label>Nombre completo</label><input name="nombre" required>
-  <label>Año de nacimiento</label><input type="number" name="anio_nacimiento" required>
+  <label>Año de nacimiento</label><inp
+  
+  <!-- Modal Módulo -->
+<div id="moduloModal" class="ventana" style="display:none; position:fixed; top:10%; left:50%; transform:translateX(-50%); z-index:9999; max-width:800px; width:90%;">
+  <div class="modal-content">
+    <span class="close" onclick="document.getElementById('moduloModal').style.display='none'">&times;</span>
+    <h3>Lecciones del Módulo</h3>
+    <div class="list-group">
+      <a href="#" class="list-group-item" onclick="abrirLeccionDentro(1)">Lección 1: Fundamentos y reglas</a>
+      <a href="#" class="list-group-item" onclick="abrirLeccionDentro(2)">Lección 2: Pase interior</a>
+      <a href="#" class="list-group-item" onclick="abrirLeccionDentro(3)">Lección 3: Conducción</a>
+      <a href="#" class="list-group-item" onclick="abrirLeccionDentro(4)">Lección 4: Control orientado</a>
+      <a href="#" class="list-group-item" onclick="abrirLeccionDentro(5)">Lección 5: Presión tras pérdida</a>
+      <a href="#" class="list-group-item" onclick="abrirLeccionDentro(6)">Lección 6: Saque de banda</a>
+      <a href="#" class="list-group-item" onclick="abrirLeccionDentro(7)">Lección 7: Corner a favor</a>
+      <a href="#" class="list-group-item" onclick="abrirLeccionDentro(8)">Lección 8: Corner en contra</a>
+      <a href="#" class="list-group-item" onclick="abrirLeccionDentro(9)">Lección 9: Posesión y descanso</a>
+      <a href="#" class="list-group-item" onclick="abrirLeccionDentro(10)">Lección 10: Fair Play y actitud</a>
+    </div>
+    <button class="btn btn-sm btn-secondary mt-3" onclick="location.reload()">Cerrar</button>
+  </div>
+</div>ut type="number" name="anio_nacimiento" required>
   <label>Posición</label><input name="posicion" required>
   <label>Goles</label><input type="number" name="goles" required>
   <label>Asistencias</label><input type="number" name="asistencias" required>
