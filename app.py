@@ -762,7 +762,6 @@ function mostrarTest() {
   mostrarPregunta();
 }
 
-  ...
 </script>
 </body>
 </html>
