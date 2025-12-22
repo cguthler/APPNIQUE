@@ -785,6 +785,12 @@ LECCION_1_HTML = """
   </style>
 </head>
 <body class="p-4">
+<!-- dentro de LECCION_1_HTML, justo después de <body class="p-4"> -->
+<style>
+  .ventana{max-height:70vh; overflow-y:auto; padding:15px;}
+  #testArea{max-height:60vh; overflow-y:auto;}
+</style>
+
   <button onclick="volverAlModal()" class="btn btn-sm btn-secondary mb-3">← Volver al módulo</button>
 
   <div class="ventana" style="max-width:700px;margin:auto">
