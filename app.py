@@ -514,7 +514,7 @@ function abrirModulo(){
       <span class="close" onclick="modal.style.display='none'">&times;</span>
       <h3>Lecciones del Módulo</h3>
       <div class="list-group">
-        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(1)">Lección 1: Fundamentos y reglas</a>
+        <a href="/leccion/1" target="_blank" class="list-group-item">Lección 1: Fundamentos y reglas</a>
         <a href="#" class="list-group-item" onclick="abrirLeccionDentro(2)">Lección 2: Pase interior</a>
         <a href="#" class="list-group-item" onclick="abrirLeccionDentro(3)">Lección 3: Conducción</a>
         <a href="#" class="list-group-item" onclick="abrirLeccionDentro(4)">Lección 4: Control orientado</a>
