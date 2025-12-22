@@ -497,55 +497,53 @@ INDEX_HTML = """
         <option>Duran Amateur League</option>
         <option>Otros</option>
       </select><button type="submit" class="btn" style="width:100%; margin-top:15px;">Registrar</button>
-    </form>
+  </form>
   </div>
+</div>   <!-- cierra modalInscripcion -->
+
+<!-- Modal Módulo -->
+<div id="moduloModal" class="ventana" style="display:none;position:fixed;top:10%;left:50%;transform:translateX(-50%);z-index:9999;max-width:800px;width:90%;"></div>
+
 <script>
-  const PASS_MODULO = "futbol2025";
+const PASS_MODULO = "futbol2025";
 
-  function abrirModulo() {
-    if (prompt("Contraseña del módulo:") === PASS_MODULO) {
-      const modal = document.getElementById('moduloModal');
-      modal.innerHTML = `
-        <div class="modal-content">
-          <span class="close" onclick="modal.style.display='none'">&times;</span>
-          <h3>Lecciones del Módulo</h3>
-          <div class="list-group">
-            <a href="#" class="list-group-item" onclick="abrirLeccionDentro(1)">Lección 1: Fundamentos y reglas</a>
-            <a href="#" class="list-group-item" onclick="abrirLeccionDentro(2)">Lección 2: Pase interior</a>
-            <a href="#" class="list-group-item" onclick="abrirLeccionDentro(3)">Lección 3: Conducción</a>
-            <a href="#" class="list-group-item" onclick="abrirLeccionDentro(4)">Lección 4: Control orientado</a>
-            <a href="#" class="list-group-item" onclick="abrirLeccionDentro(5)">Lección 5: Presión tras pérdida</a>
-            <a href="#" class="list-group-item" onclick="abrirLeccionDentro(6)">Lección 6: Saque de banda</a>
-            <a href="#" class="list-group-item" onclick="abrirLeccionDentro(7)">Lección 7: Corner a favor</a>
-            <a href="#" class="list-group-item" onclick="abrirLeccionDentro(8)">Lección 8: Corner en contra</a>
-            <a href="#" class="list-group-item" onclick="abrirLeccionDentro(9)">Lección 9: Posesión y descanso</a>
-            <a href="#" class="list-group-item" onclick="abrirLeccionDentro(10)">Lección 10: Fair Play y actitud</a>
-          </div>
-          <button class="btn btn-sm btn-secondary mt-3" onclick="location.reload()">Cerrar</button>
-        </div>`;
-      modal.style.display = 'block';   // ← LÍNEA QUE FALTABA
-    } else {
-      alert("❌ Contraseña incorrecta");
-    }
-  }
+function abrirModulo(){
+  const modal = document.getElementById('moduloModal');
+  modal.innerHTML = `
+    <div class="modal-content">
+      <span class="close" onclick="modal.style.display='none'">&times;</span>
+      <h3>Lecciones del Módulo</h3>
+      <div class="list-group">
+        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(1)">Lección 1: Fundamentos y reglas</a>
+        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(2)">Lección 2: Pase interior</a>
+        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(3)">Lección 3: Conducción</a>
+        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(4)">Lección 4: Control orientado</a>
+        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(5)">Lección 5: Presión tras pérdida</a>
+        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(6)">Lección 6: Saque de banda</a>
+        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(7)">Lección 7: Corner a favor</a>
+        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(8)">Lección 8: Corner en contra</a>
+        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(9)">Lección 9: Posesión y descanso</a>
+        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(10)">Lección 10: Fair Play y actitud</a>
+      </div>
+      <button class="btn btn-sm btn-secondary mt-3" onclick="location.reload()">Cerrar</button>
+    </div>`;
+  modal.style.display = 'block';
+}
 
-  function abrirLeccionDentro(n) {
-    fetch("/leccion/" + n)
-      .then(r => r.text())
-      .then(html => {
-        document.getElementById('moduloModal').innerHTML = html;
-      });
-  }
+function abrirLeccionDentro(n){
+  fetch("/leccion/" + n)
+    .then(r => r.text())
+    .then(html => { document.getElementById('moduloModal').innerHTML = html; });
+}
 
-  function volverAlModal() {
-    location.reload();
-  }
+function volverAlModal(){
+  location.reload();
+}
 </script>
 
-</div>
 </body>
 </html>
-"""
+""" 
 ADMIN_LOGIN_HTML = """
 <form method="post" style="max-width:300px;margin:auto">
   <h2>Admin Login</h2>
