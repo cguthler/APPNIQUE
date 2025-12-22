@@ -326,7 +326,7 @@ INDEX_HTML = """
       <button class="btn" onclick="document.getElementById('infoModal').style.display='block'">+ Info</button>
       <button class="btn" onclick="pedirClavePDF()">Cargar PDF</button>
       <button class="btn" onclick="abrirModal()">Formulario</button>
-      <button class="btn" onclick="abrirModulo()">Módulo</button>
+      <button class="btn" onclick="if(document.getElementById('moduloModal'))abrirModulo();else alert('Modal no listo');">Módulo</button>
     </div>
   </div>
 
