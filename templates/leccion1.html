@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Lección 1 - Fundamentos y reglas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body{background:#1b263b;color:#ffff00;font-family:Segoe UI,system-ui,sans-serif}
+    .ventana{background:#1b263b;border-radius:12px;padding:20px;color:#ffff00}
+    .btn-leer{background:#415a77;color:#ffff00;border:none;padding:10px 18px;border-radius:8px;cursor:pointer;font-size:15px}
+    .btn-leer:hover{background:#5a7fb0}
+    .timer-bar{width:100%;height:6px;background:#eee;margin-bottom:8px}
+    .timer-fill{height:100%;background:#0d6efd;transition:width 1s linear}
+  </style>
+</head>
+<body class="p-4">
+
+<!-- Botón volver -->
+<button onclick="volverAlModal()" class="btn btn-sm btn-secondary mb-3">← Volver al módulo</button>
+
+<div class="ventana" style="max-width:700px;margin:auto">
+  <h4>Lección 1: Fundamentos y reglas del fútbol</h4>
+  <div class="mt-3 p-3 bg-dark rounded small">
+    <p>
+      Listos para el partido esperado, el árbitro coloca el balón sobre el círculo central y pita el inicio. Cada jugador entiende que:<br>
+      Primero, <strong>la mano</strong>: solo el portero puede usarla y solo dentro del rectángulo. Cualquier otro contacto es falta inmediata y, en el área, penal.<br>
+      Segundo, <strong>el offside</strong>: si al recibir estás más cerca del arco que el último defensa, el banderín levanta y la jugada muere.<br>
+      Tercero, <strong>el saque de banda</strong>: dos pies en el campo, balón detrás de la cabeza; si uno se adelanta o la tira mal, pierdes el saque.<br><br>
+
+      Con las reglas claras, llegan los <strong>fundamentos</strong>:<br>
+      - Controlar con el interior del pie o pisarla, no con el empeine, para que la pelota se detenga junto al pie y no tres metros adelante.<br>
+      - Pasar con el interior, tobillo firme, al pie bueno del compañero: reduce un toque y evita el rebote.<br>
+      - Disparar mirando al portero, no pensar al que dirán, y apuntar al poste cercano.<br>
+      - En defensa, marcar de costado, brazo extendido, sin derribar.<br>
+      - Desmarcarse antes de pedir: dos pasos al espacio y una señal con la mano bastan para romper líneas sin offside.<br>
+      - En saques laterales, destinarla al jugador delante nuestro más cercano, llamándole la atención.<br><br>
+
+      Las <strong>mañas</strong> permiten ganar segundos:<br>
+      - Provocar que el balón golpee en las piernas del rival para ganar corners o laterales.<br>
+      - Sacar rápido de banda mientras el otro discute.<br>
+      - Descansar con la pelota dirigiendo el juego hacia el portero nuestro para tomar aliento y volver a empezar.<br><br>
+
+      Pero aparecen los <strong>errores típicos del juego amateur</strong>:<br>
+      - Protestar cada pitazo: amarilla gratuita, reclamarse entre nosotros muestra un equipo nervioso.<br>
+      - Correr todos tras la pelota: se cierra el campo y desaparecen los pases.<br>
+      - Pedirla estático: el defensa ya te tapa y perdés en la primera.<br>
+      - Quedarse mirando la jugada: el rival contraataca y te coge parado en ventaja.<br>
+      - Olvidan volver después de una buena jugada, no marcar hombre a hombre en saques laterales rivales y tiros de esquina.<br>
+      - Salir desde el área por el centro no es recomendable, <strong>SALGA POR LOS LATERALES O A LA RAYA</strong>.<br><br>
+
+      Cuando el árbitro pita el final, el equipo que supo conjugar reglas, fundamentos y pequeñas dosis de profesionalismo se lleva los tres puntos y la satisfacción de haber jugado al fútbol sin sobresaltos ni reclamos.
+    </p>
+  </div>
+
+  <!-- Botón para desplegar el test -->
+  <div class="text-center mt-4">
+    <button class="btn-leer" onclick="mostrarTest()">Leído → Comenzar test</button>
+  </div>
+
+  <!-- Aquí se insertará el test más tarde -->
+  <div id="testArea"></div>
+  <div id="resultArea" class="mt-3"></div>
+</div>
+
+<!-- ==========  JavaScript  ========== -->
+<script>
+  /* ==========  VARIABLES GLOBALES  ========== */
+  let preguntas = [], idx = 0, aciertos = 0, timer = null;
+
+  /* ==========  FUNCIONES GLOBALES  ========== */
+  function volverAlModal() {
+    location.reload();
+  }
+
+  function corregir(){
+    const sel = document.querySelector('input[name="opt"]:checked');
+    if(!sel){ alert("Elegí una opción."); return; }
+    clearInterval(timer);
+    if(parseInt(sel.value) === preguntas[idx].ok) aciertos++;
+    idx++;
+    if(idx < 10){ mostrarPregunta(); } else { finalizar(); }
+  }
+
+  function finalizar(){
+    const total = preguntas.length;
+    if(aciertos === total){
+      localStorage.setItem("modulo1","aprobado");
+      document.getElementById('resultArea').innerHTML =
+        `<div class="alert alert-success">¡Aprobaste! Estás listo para jugar tu partido.</div>`;
+      fetch("/guardar_aprobacion", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({jugador_id:1, leccion_numero:1, nota:aciertos})
+      });
+      const btn = document.createElement('button');
+      btn.className = 'btn btn-success mt-3';
+      btn.textContent = 'Ver siguiente lección →';
+      btn.onclick = () => window.open("/leccion/2", "_blank");
+      document.getElementById('resultArea').appendChild(btn);
+    }else{
+      document.getElementById('resultArea').innerHTML =
+        `<div class="alert alert-warning">Respondiste ${aciertos}/${total}. Necesitas 10/10 para aprobar.</div>`;
+      setTimeout(()=> volverAlModal(), 3000);
+    }
+  }
+
+  /* ==========  TEST  ========== */
+  function mostrarTest() {
+    // Ocultamos el botón para que no lo aprieten dos veces
+    document.querySelector('.btn-leer').style.display = 'none';
+
+    const TIME_PER_Q = 12;
+    preguntas = [
+      {q:"¿Quién puede usar las manos dentro del rectángulo?",opts:["Cualquier jugador","Solo el portero","El capitán","Nadie"],ok:1},
+      {q:"¿Qué ocurre si estás más cerca del arco que el último defensa al recibir un pase?",opts:["Gol válido","Falta directa","Offside","Saque de meta"],ok:2},
+      {q:"¿Cómo se debe realizar el saque de banda?",opts:["Con un pie en la línea","Saltando","Dos pies en el campo y pelota detrás de la cabeza","Con la mano"],ok:2},
+      {q:"¿Dónde se cobra un penal?",opts:["Desde el círculo central","Desde el punto penal","Desde la banda","Desde el corner"],ok:1},
+      {q:"¿Con qué parte del pie se recomienda controlar un balón alto?",opts:["Empeine","Planta o interior","Talón","Rodilla"],ok:1},
+      {q:"¿A qué pie se le debe pasar la pelota al compañero?",opts:["Al pie malo","Al que esté más cerca","Al pie bueno","Al que pida de talón"],ok:2},
+      {q:"¿A qué poste se recomienda apuntar al disparar?",opts:["Al que esté más lejos","Al palo cercano","Al árbitro","Al cielo"],ok:1},
+      {q:"¿Cómo se debe marcar al rival?",opts:["Por detrás","De frente","De costado, brazo extendido, sin derribar","Corriendo tras él"],ok:2},
+      {q:"¿Qué se debe hacer antes de pedir la pelota?",opts:["Quedarse quieto","Gritar más fuerte","Desmarcarse con dos pasos y señalar","Esperar al árbitro"],ok:2},
+      {q:"¿Qué error evita el equipo que quiere mantener el orden?",opts:["Salir por el centro del área","Pase largo","Tiro al arco","Corners"],ok:0}
+    ];
+
+    idx = 0;
+    aciertos = 0;
+    mostrarPregunta();
+  }
+
+  function mostrarPregunta(){
+    const p = preguntas[idx];
+    let html = `<div class="timer-bar"><div class="timer-fill" style="width:100%"></div></div>
+                <b>Pregunta ${idx+1}/10</b> – ${p.q}<br><small id="countdown">12s</small><div class="mt-2">`;
+    p.opts.forEach((o,k)=> html += `
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="opt" id="o${k}" value="${k}">
+        <label class="form-check-label" for="o${k}" style="color:#fff;">${o}</label>
+      </div>`);
+    html += `</div><button class="btn btn-primary btn-sm mt-2" onclick="corregir()">Siguiente</button>`;
+    document.getElementById('testArea').innerHTML = html;
+
+    let seg = 12;
+    const bar = document.querySelector('.timer-fill');
+    const txt = document.getElementById('countdown');
+    timer = setInterval(()=>{
+      seg--;
+      bar.style.width = (seg/12*100) + '%';
+      txt.textContent = seg + 's';
+      if(seg === 0){ clearInterval(timer); timeOut(); }
+    },1000);
+  }
+
+  function timeOut(){
+    alert("Se acabó el tiempo. Volvé a intentarlo.");
+    volverAlModal();
+  }
+</script>
+
+</body>
+</html>
