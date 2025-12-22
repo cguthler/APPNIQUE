@@ -533,7 +533,12 @@ function abrirModulo(){
 function abrirLeccionDentro(n){
   fetch("/leccion/" + n)
     .then(r => r.text())
-    .then(html => { document.getElementById('moduloModal').innerHTML = html; });
+    .then(html => {
+      const modal = document.getElementById('moduloModal');
+      modal.innerHTML = html;
+      modal.style.display = 'block';
+      modal.scrollTop = 0;          // lleva el scroll arriba
+    });
 }
 
 function volverAlModal(){
@@ -599,7 +604,27 @@ LECCION_1_HTML = """
     .ventana{background:#1b263b;border-radius:12px;padding:20px;color:#ffff00}
     .btn-leer{background:#415a77;color:#ffff00;border:none;padding:10px 18px;border-radius:8px;cursor:pointer;font-size:15px}
     .btn-leer:hover{background:#5a7fb0}
-  </style>
+  </style><style>
+  /* ===== MODAL-LECCIÓN ===== */
+  #moduloModal{
+    max-height:80vh;          /* altura máxima 80 % de la pantalla */
+    overflow-y:auto;          /* scroll vertical si el contenido es largo */
+    padding:20px;             /* separación interna */
+    box-sizing:border-box;
+  }
+  .modal-content{
+    background:#1b263b;
+    color:#ffff00;
+    border-radius:12px;
+    padding:25px;
+  }
+  .timer-bar{ width:100%; height:6px; background:#eee; margin-bottom:8px; }
+  .timer-fill{ height:100%; background:#0d6efd; transition:width 1s linear; }
+  /* test */
+  #testArea{ margin-top:15px; }
+  #resultArea{ margin-top:10px; }
+</style>
+  
 </head>
 <body class="p-4">
   <!-- Botón volver -->
