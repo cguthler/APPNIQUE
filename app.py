@@ -1,5 +1,8 @@
 # ---------------  app.py (Flask + Admin + PDF) ---------------
-from flask import Flask, render_template_string, request, redirect, url_for, send_from_directory, session
+from flask import (
+    Flask, render_template_string, request, redirect, url_for,
+    send_from_directory, session, jsonify
+)
 import sqlite3, os
 from datetime import date
 from werkzeug.utils import secure_filename
@@ -11,7 +14,7 @@ from dotenv import load_dotenv
 from datetime import datetime
 load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
-RENDER = os.getenv("RENDER") == "true"   # variable de entorno
+RENDER = os.getenv("RENDER") == "true"
 if RENDER:
     cloudinary.config(
         cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
@@ -19,17 +22,79 @@ if RENDER:
         api_secret=os.getenv("CLOUDINARY_API_SECRET")
     )
 
+# ---------- ÚNICA INSTANCIA DE FLASK ----------
 app = Flask(__name__)
 app.secret_key = "clave_secreta_niquee"
 
+# ---------- CREAR TABLAS ----------
+with sqlite3.connect('futbol.db') as conn:
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS jugadores (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT NOT NULL,
+            cedula TEXT UNIQUE NOT NULL,
+            anio_nacimiento INTEGER
+        );
+    """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS aprobaciones (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            jugador_id INTEGER,
+            leccion_numero INTEGER,
+            nota INTEGER,
+            fecha TEXT,
+            FOREIGN KEY(jugador_id) REFERENCES jugadores(id)
+        );
+    """)
+    conn.commit()
+
+# ---------- API JSON ----------
+@app.route('/api/registro_rapido', methods=['POST'])
+def api_registro_rapido():
+    data = request.get_json(force=True)
+    nombre = data.get('nombre')
+    cedula = data.get('cedula')
+    anio   = data.get('anio')
+    if not all([nombre, cedula, anio]):
+        return jsonify({"error": "Faltan campos"}), 400
+    conn = sqlite3.connect('futbol.db')
+    cur = conn.cursor()
+    cur.execute("INSERT INTO jugadores (nombre, cedula, anio_nacimiento) VALUES (?,?,?)",
+                (nombre, cedula, anio))
+    conn.commit()
+    nuevo_id = cur.lastrowid
+    conn.close()
+    return jsonify({"id": nuevo_id})
+
+
+@app.route('/guardar_aprobacion', methods=['POST'])
+def api_guardar_aprobacion():
+    data = request.get_json(force=True)
+    jugador_id   = data.get('jugador_id')
+    leccion_num  = data.get('leccion_numero')
+    nota         = data.get('nota')
+    if not all([jugador_id, leccion_num, nota]):
+        return jsonify({"error": "Faltan campos"}), 400
+    conn = sqlite3.connect('futbol.db')
+    cur = conn.cursor()
+    cur.execute("INSERT INTO aprobaciones (jugador_id, leccion_numero, nota, fecha) VALUES (?,?,?,?)",
+                (jugador_id, leccion_num, nota, date.today().isoformat()))
+    conn.commit()
+    conn.close()
+    return jsonify({"ok": True})
+
+
+# ---------- CONFIG DE CARPETAS ----------
 UPLOAD_IMG = "static/uploads"
 UPLOAD_DOCS = "static/uploads/docs"
 os.makedirs(UPLOAD_IMG, exist_ok=True)
 os.makedirs(UPLOAD_DOCS, exist_ok=True)
 
 ADMIN_PASSWORD = "jeremias123"
-PDF_PASSWORD = "niquee123"   # <-- cambia aquí tu clave
-FORM_PASSWORD = "guthler123"   # ← contraseña nueva solo para el formulario
+PDF_PASSWORD = "niquee123"
+FORM_PASSWORD = "guthler123"
+
+# … resto de tus rutas …
 
 # ---------- BD ----------
 def init_db():
@@ -1010,6 +1075,45 @@ def registro_rapido():
     conn.commit()
     conn.close()
     return {"id": jugador_id, "nombre": nombre}, 201
+    
+# ---------- API JSON (para el front de la lección) ----------
+@app.route('/api/registro_rapido', methods=['POST'])
+def api_registro_rapido():
+    data = request.get_json(force=True)
+    nombre = data.get('nombre')
+    cedula = data.get('cedula')
+    anio   = data.get('anio')
 
+    if not all([nombre, cedula, anio]):
+        return {"error": "Faltan campos"}, 400
+
+    conn = sqlite3.connect('futbol.db')
+    cur = conn.cursor()
+    cur.execute("INSERT INTO jugadores (nombre, cedula, anio_nacimiento) VALUES (?,?,?)",
+                (nombre, cedula, anio))
+    conn.commit()
+    nuevo_id = cur.lastrowid
+    conn.close()
+    return {"id": nuevo_id}
+
+
+@app.route('/guardar_aprobacion', methods=['POST'])
+def api_guardar_aprobacion():
+    data = request.get_json(force=True)
+    jugador_id   = data.get('jugador_id')
+    leccion_num  = data.get('leccion_numero')
+    nota         = data.get('nota')
+
+    if not all([jugador_id, leccion_num, nota]):
+        return {"error": "Faltan campos"}, 400
+
+    conn = sqlite3.connect('futbol.db')
+    cur = conn.cursor()
+    cur.execute("INSERT INTO aprobaciones (jugador_id, leccion_numero, nota, fecha) VALUES (?,?,?,?)",
+                (jugador_id, leccion_num, nota, date.today().isoformat()))
+    conn.commit()
+    conn.close()
+    return {"ok": True}
+    
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
