@@ -69,7 +69,7 @@ def init_db():
     conn.close()
 
 
-@app.route("/admin/panel")
+@app.("/admin/panel")
 def admin_panel():
     if not session.get("admin"):
         return redirect(url_for("admin_login"))
@@ -82,7 +82,7 @@ def admin_panel():
     conn.close()
     return render_template_string(ADMIN_PANEL_HTML, jugadores=rows)
 
-@app.route("/admin", methods=["GET", "POST"])
+@app.("/admin", methods=["GET", "POST"])
 def admin_login():
     if request.method == "POST":
         if request.form["password"] == ADMIN_PASSWORD:
@@ -936,12 +936,14 @@ LECCION_1_HTML = """
 </body>
 </html>
 """
-
-@app.route("/leccion/<int:n>")
+@app.route('/leccion/<int:n>')
 def leccion(n):
     if n == 1:
-        return LECCION_1_HTML
+        with open('templates/leccion1.html', 'r', encoding='utf-8') as f:
+            html = f.read()
+        return render_template_string(html)
     return "Lección no encontrada", 404
+
 
 # ---------- VERIFICAR APROBACIONES ----------
 @app.route("/ver_lecciones")
@@ -981,14 +983,6 @@ def guardar_aprobacion():
     conn.close()
     return {"status": "ok"}, 200
 
-# ---------- SERVIR LECCIÓN 1 ----------
-@app.route('/leccion/<int:n>')
-def leccion(n):
-    if n == 1:
-        with open('templates/leccion1.html', 'r', encoding='utf-8') as f:
-            html = f.read()
-        return render_template_string(html)
-    return "Lección no encontrada", 404
 
 
 if __name__ == "__main__":
