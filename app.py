@@ -980,5 +980,16 @@ def guardar_aprobacion():
     conn.commit()
     conn.close()
     return {"status": "ok"}, 200
+
+# ---------- SERVIR LECCIÓN 1 ----------
+@app.route('/leccion/<int:n>')
+def leccion(n):
+    if n == 1:
+        with open('templates/leccion1.html', 'r', encoding='utf-8') as f:
+            html = f.read()
+        return render_template_string(html)
+    return "Lección no encontrada", 404
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
