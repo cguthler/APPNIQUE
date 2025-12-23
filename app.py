@@ -988,7 +988,28 @@ def guardar_aprobacion():
     conn.close()
     return {"status": "ok"}, 200
 
+# ---------- REGISTRO RÁPIDO (crea jugador y devuelve ID) ----------
+@app.route('/api/registro_rapido', methods=['POST'])
+def registro_rapido():
+    from datetime import date
+    data = request.get_json()
+    nombre = data.get('nombre')
+    cedula = data.get('cedula')
+    anio = data.get('anio')
 
+    if not all([nombre, cedula, anio]):
+        return {"error": "Faltan datos"}, 400
+
+    conn = psycopg2.connect(DATABASE_URL)
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO jugadores (nombre, cedula, anio_nacimiento, posicion, goles, asistencias, fecha_ingreso) VALUES (%s, %s, %s, 'POR', 0, 0, %s) RETURNING id",
+        (nombre, cedula, anio, date.today().isoformat())
+    )
+    jugador_id = cursor.fetchone()[0]
+    conn.commit()
+    conn.close()
+    return {"id": jugador_id, "nombre": nombre}, 201
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
