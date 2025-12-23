@@ -81,7 +81,7 @@ def admin_panel():
     conn.close()
     return render_template_string(ADMIN_PANEL_HTML, jugadores=rows)
 
-@app.("/admin", methods=["GET", "POST"])
+@app.route("/admin", methods=["GET", "POST"])
 def admin_login():
     if request.method == "POST":
         if request.form["password"] == ADMIN_PASSWORD:
