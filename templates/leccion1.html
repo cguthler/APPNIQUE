@@ -12,27 +12,16 @@
     .btn-leer:hover{background:#5a7fb0}
     .timer-bar{width:100%;height:6px;background:#eee;margin-bottom:8px}
     .timer-fill{height:100%;background:#0d6efd;transition:width 1s linear}
-   .registro-final{
-  background: #ffffff;
-  color: #1b263b;
-  border-radius: 12px;
-  padding: 20px;
-  margin-top: 15px;
-  text-align: center;
-}
-.registro-final input{
-  padding: 8px 12px;
-  margin: 5px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  font-size: 14px;
-  width: 180px;
-} 
+    .registro-final{
+      background:#ffffff;color:#1b263b;border-radius:12px;padding:20px;margin-top:15px;text-align:center
+    }
+    .registro-final input{
+      padding:8px 12px;margin:5px;border-radius:6px;border:1px solid #ccc;font-size:14px;width:180px
+    }
   </style>
 </head>
 <body class="p-4">
 
-<!-- Botón volver -->
 <button onclick="volverAlModal()" class="btn btn-sm btn-secondary mb-3">← Volver al módulo</button>
 
 <div class="ventana" style="max-width:700px;margin:auto">
@@ -69,17 +58,23 @@
     </p>
   </div>
 
-  <!-- Botón para desplegar el test -->
   <div class="text-center mt-4">
     <button class="btn-leer" onclick="mostrarTest()">Leído → Comenzar test</button>
   </div>
 
-  <!-- Aquí se insertará el test más tarde -->
   <div id="testArea"></div>
   <div id="resultArea" class="mt-3"></div>
 </div>
 
-<!-- ==========  JavaScript  ========== -->
+<div id="registroFinal" class="registro-final" style="display:none">
+  <h5>¡Aprobaste! Complete sus datos para registrar su aprobación:</h5>
+  <input type="text" id="regNombre" placeholder="Nombre completo" required>
+  <input type="text" id="regCedula" placeholder="Cédula" required>
+  <input type="number" id="regAnio" placeholder="Año de nacimiento" min="1900" max="2100" required>
+  <br>
+  <button id="btnRegistrar" class="btn btn-success mt-2">Registrar y ver siguiente lección →</button>
+</div>
+
 <script>
   /* ==========  VARIABLES GLOBALES  ========== */
   let preguntas = [], idx = 0, aciertos = 0, timer = null;
@@ -107,12 +102,14 @@
       fetch("/guardar_aprobacion", {
         method: "POST",
         headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({jugador_id: jugador.id, leccion_numero: 1, nota: aciertos})
+        body: JSON.stringify({jugador_id: jugador.id, leccion_numero: 1, nota: aciertos})
+      });
       const btn = document.createElement('button');
       btn.className = 'btn btn-success mt-3';
       btn.textContent = 'Ver siguiente lección →';
       btn.onclick = () => window.open("/leccion/2", "_blank");
       document.getElementById('resultArea').appendChild(btn);
+      document.getElementById('registroFinal').style.display = 'block';
     }else{
       document.getElementById('resultArea').innerHTML =
         `<div class="alert alert-warning">Respondiste ${aciertos}/${total}. Necesitas 10/10 para aprobar.</div>`;
@@ -122,7 +119,6 @@
 
   /* ==========  TEST  ========== */
   function mostrarTest() {
-    // Ocultamos el botón para que no lo aprieten dos veces
     document.querySelector('.btn-leer').style.display = 'none';
 
     const TIME_PER_Q = 12;
@@ -151,7 +147,7 @@
     p.opts.forEach((o,k)=> html += `
       <div class="form-check">
         <input class="form-check-input" type="radio" name="opt" id="o${k}" value="${k}">
-        <label class="form-check-label" for="o${k}" style="color:#fff;">${o}</label>
+        <label class="form-check-label" for="o${k}" style="color:#fff">${o}</label>
       </div>`);
     html += `</div><button class="btn btn-primary btn-sm mt-2" onclick="corregir()">Siguiente</button>`;
     document.getElementById('testArea').innerHTML = html;
@@ -171,64 +167,41 @@
     alert("Se acabó el tiempo. Volvé a intentarlo.");
     volverAlModal();
   }
-</script>
-  <!-- Formulario de registro (solo aparece si aprueba 10/10) -->
-  <div id="registroFinal" class="registro-final" style="display:none;">
-    <h5>¡Aprobaste! Complete sus datos para registrar su aprobación:</h5>
-    <input type="text" id="regNombre" placeholder="Nombre completo" required>
-    <input type="text" id="regCedula" placeholder="Cédula" required>
-    <input type="number" id="regAnio" placeholder="Año de nacimiento" min="1900" max="2100" required>
-    <br>
-    <button id="btnRegistrar" class="btn btn-success mt-2">Registrar y ver siguiente lección →</button>
-  </div>
 
-    <!-- Formulario de registro (solo aparece si aprueba 10/10) -->
-  <div id="registroFinal" class="registro-final" style="display:none;">
-    <h5>¡Aprobaste! Complete sus datos para registrar su aprobación:</h5>
-    <input type="text" id="regNombre" placeholder="Nombre completo" required>
-    <input type="text" id="regCedula" placeholder="Cédula" required>
-    <input type="number" id="regAnio" placeholder="Año de nacimiento" min="1900" max="2100" required>
-    <br>
-    <button id="btnRegistrar" class="btn btn-success mt-2">Registrar y ver siguiente lección →</button>
-  </div>
+  /* ---------- REGISTRO AL FINAL (solo si aprueba) ---------- */
+  document.getElementById('btnRegistrar').addEventListener('click', async () => {
+    const nombre = document.getElementById('regNombre').value.trim();
+    const cedula = document.getElementById('regCedula').value.trim();
+    const anio = parseInt(document.getElementById('regAnio').value);
 
-  <script>
-    /* ---------- REGISTRO AL FINAL (solo si aprueba) ---------- */
-    document.getElementById('btnRegistrar').addEventListener('click', async () => {
-      const nombre = document.getElementById('regNombre').value.trim();
-      const cedula = document.getElementById('regCedula').value.trim();
-      const anio = parseInt(document.getElementById('regAnio').value);
+    if (!nombre || !cedula || !anio) {
+      alert("Completá todos los campos.");
+      return;
+    }
 
-      if (!nombre || !cedula || !anio) {
-        alert("Completá todos los campos.");
-        return;
-      }
-
-      // 1. Crear jugador
-      const resJugador = await fetch("/api/registro_rapido", {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({nombre, cedula, anio})
-      });
-      const jugador = await resJugador.json();
-
-      if (!jugador.id) {
-        alert("Error al registrar.");
-        return;
-      }
-
-      // 2. Guardar aprobación
-      await fetch("/guardar_aprobacion", {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-       body: JSON.stringify({jugador_id: jugador.id, leccion_numero: 1, nota: aciertos})
-
-      // 3. Ir a lección 2
-      window.open("/leccion/2", "_blank");
+    const resJugador = await fetch("/api/registro_rapido", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({nombre, cedula, anio})
     });
-  </script>
+    const jugador = await resJugador.json();
+
+    if (!jugador.id) {
+      alert("Error al registrar.");
+      return;
+    }
+
+    await fetch("/guardar_aprobacion", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({jugador_id: jugador.id, leccion_numero: 1, nota: aciertos})
+    });
+
+    window.open("/leccion/2", "_blank");
+  });
+</script>
 </body>
 </html>
-    
+
 
 
