@@ -303,6 +303,13 @@ INDEX_HTML = """
     @media(max-width:900px){
       .galeria{grid-template-columns:repeat(2,1fr)}
     }
+    .modulo-lecciones{
+  background: #f5f5f5; /* fondo claro */
+  color: #1b263b;      /* texto oscuro que resalta */
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,.25);
+}
   </style>
 </head>
 <body>
@@ -501,8 +508,7 @@ INDEX_HTML = """
 </div>   <!-- cierra modalInscripcion -->
 
 <!-- Modal Módulo -->
-<div id="moduloModal" class="ventana" style="display:none;position:fixed;top:10%;left:50%;transform:translateX(-50%);z-index:9999;max-width:800px;width:90%;"></div>
-
+<div id="moduloModal" class="ventana modulo-lecciones" style="display:none;position:fixed;top:10%;left:50%;transform:translateX(-50%);z-index:9999;max-width:800px;width:90%;"></div>
 <script>
 const PASS_MODULO = "futbol2025";
 
