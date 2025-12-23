@@ -598,7 +598,7 @@ LECCION_1_HTML = """
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    body{background:#1b263b;color:#ffff00;font-family:Segoe UI,system-ui,sans-serif}
+    body{background:#1b263b;color:#ffffff;font-family:Segoe UI,system-ui,sans-serif}
     .ventana{background:#1b263b;border-radius:12px;padding:20px;color:#ffff00}
     .btn-leer{background:#415a77;color:#ffff00;border:none;padding:10px 18px;border-radius:8px;cursor:pointer;font-size:15px}
     .btn-leer:hover{background:#5a7fb0}
