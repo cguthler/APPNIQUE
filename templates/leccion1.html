@@ -107,8 +107,7 @@
       fetch("/guardar_aprobacion", {
         method: "POST",
         headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({jugador_id:1, leccion_numero:1, nota:aciertos})
-      });
+      body: JSON.stringify({jugador_id: jugador.id, leccion_numero: 1, nota: aciertos})
       const btn = document.createElement('button');
       btn.className = 'btn btn-success mt-3';
       btn.textContent = 'Ver siguiente lección →';
@@ -231,4 +230,5 @@
 </body>
 </html>
     
+
 
