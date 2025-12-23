@@ -1006,14 +1006,6 @@ LECCION_1_HTML = """
 </body>
 </html>
 """
-@app.route('/leccion/<int:n>')
-def leccion(n):
-    if n == 1:
-        with open('templates/leccion1.html', 'r', encoding='utf-8') as f:
-            html = f.read()
-        return render_template_string(html)
-    return "Lección no encontrada", 404
-
 
 # ---------- VERIFICAR APROBACIONES ----------
 @app.route("/ver_lecciones")
@@ -1076,6 +1068,14 @@ def registro_rapido():
     conn.close()
     return {"id": jugador_id, "nombre": nombre}, 201
     
+ # ---------- SERVIR CUALQUIER LECCIÓN ----------
+@app.route('/leccion/<int:n>')
+def leccion(n):
+    try:
+        with open(f'templates/leccion{n}.html', 'r', encoding='utf-8') as f:
+            return render_template_string(f.read())
+    except FileNotFoundError:
+        return "Lección no encontrada", 404   
     
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
