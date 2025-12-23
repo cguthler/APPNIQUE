@@ -222,8 +222,7 @@
       await fetch("/guardar_aprobacion", {
         method: "POST",
         headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({jugador_id: jugador.id, leccion_numero: 1, nota: aciertos})
-      });
+       body: JSON.stringify({jugador_id: jugador.id, leccion_numero: 1, nota: aciertos})
 
       // 3. Ir a lección 2
       window.open("/leccion/2", "_blank");
@@ -232,3 +231,4 @@
 </body>
 </html>
     
+
