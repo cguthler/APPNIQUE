@@ -68,8 +68,7 @@ def init_db():
         conn.commit()
     conn.close()
 
-
-@app.("/admin/panel")
+@app.route("/admin/panel")
 def admin_panel():
     if not session.get("admin"):
         return redirect(url_for("admin_login"))
