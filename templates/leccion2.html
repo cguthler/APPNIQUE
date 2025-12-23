@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Lección 2 – Pase interior</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body{background:#1b263b;color:#ffffff;font-family:Segoe UI,system-ui,sans-serif}
+    .ventana{background:#1b263b;border-radius:12px;padding:20px;color:#ffff00}
+    .btn-leer{background:#415a77;color:#ffff00;border:none;padding:10px 18px;border-radius:8px;cursor:pointer;font-size:15px}
+    .btn-leer:hover{background:#5a7fb0}
+    .timer-bar{width:100%;height:6px;background:#eee;margin-bottom:8px}
+    .timer-fill{height:100%;background:#0d6efd;transition:width 1s linear}
+    .ventana{max-height:70vh;overflow-y:auto;padding:15px}
+    #testArea{max-height:60vh;overflow-y:auto}
+  </style>
+</head>
+<body class="p-4">
+<button onclick="volverAlModal()" class="btn btn-sm btn-secondary mb-3">← Volver al módulo</button>
+
+<div class="ventana" style="max-width:700px;margin:auto">
+  <h4>Lección 2: Pase interior – precisión y ritmo</h4>
+  <div class="mt-3 p-3 bg-dark rounded small">
+    <p>
+      El <strong>pase interior</strong> es la base de la posesión. Se ejecuta con la parte interna del pie dominante, tobillo firme, cuerpo ligeramente inclinado hacia adelante y rodilla de la pierna de apoyo flexionada.<br><br>
+
+      <strong>Técnica clave:</strong><br>
+      - Apoyá el pie no pateador al costado del balón.<br>
+      - Girá el tobillo hacia afuera para que la cara interna quede paralela al objetivo.<br>
+      - Pegale al centro del balón; si lo haces muy abajo lo levantás, muy arriba lo clavás.<br>
+      - Seguí el movimiento: el pie debe salir hacia el compañero, no hacia arriba.<br><br>
+
+      <strong>Tipos de pase interior:</strong><br>
+      - <em>Fijo:</em> pie plantado, sin finta, ideal cuando tenés tiempo.<br>
+      - <em>En movimiento:</em> se hace mientras corrés; el pie de apoyo cae más adelante y el golpe es más corto.<br>
+      - <em>De primera:</em> sin controlar, solo direccionás el balón que viene; necesitás anticipación.<br><br>
+
+      <strong>Detalles que marcan la diferencia:</strong><br>
+      - Pasá al pie bueno del compañero (evita que tenga que acomodar).<br>
+      - Suavizá el pase en pista mojada; el balón patina más.<br>
+      - Si hay presión, pasá con el interior pero corto: que el receptor te la devuelva enseguida (pase de pared).<br>
+      - Para romper líneas, disimulá: mirá para un lado y pasás para el otro; cambiá el cuerpo, no solo la cabeza.<br><br>
+
+      <strong>Errores comunes:</strong><br>
+      - Tobillo flojo → el balón se va para afuera.<br>
+      - Mirar el balón → perdés opciones de pase y te llegan encima.<br>
+      - Pase sin avisar → tu compañero no está listo y la pierde.<br>
+      - Fuerza excesiva → el receptor la tiene que parar, pierde ritmo y llega la marca.<br><br>
+
+      <strong>Ejercicio de práctica:</strong><br>
+      1. Con un compañero, colocá dos conos a 5 m. 2. Pasá y corrés al cono de enfrente. 3. Limitá a dos toques. 4. Hacelo 20 veces sin parar. Si la perdés, volvé al principio.<br><br>
+
+      <strong>Regla de oro:</strong> el pase interior no es solo técnica, es <em>ritmo</em>. Cuanto más rápido y justo, menos tiempo tiene la defensa para reorganizarse.
+    </p>
+  </div>
+
+  <!-- Botón para desplegar el test -->
+  <div class="text-center mt-4">
+    <button class="btn-leer" onclick="mostrarTest()">Leído → Comenzar test</button>
+  </div>
+
+  <!-- Aquí se insertará el test más tarde -->
+  <div id="testArea"></div>
+  <div id="resultArea" class="mt-3"></div>
+</div>
+
+<script>
+/* ==========  FUNCIONES GLOBALES  ========== */
+function volverAlModal() { location.reload(); }
+
+let preguntas = [], idx = 0, aciertos = 0, timer = null;
+
+function corregir(){
+  const sel = document.querySelector('input[name="opt"]:checked');
+  if(!sel){ alert("Elegí una opción."); return; }
+  clearInterval(timer);
+  if(parseInt(sel.value) === preguntas[idx].ok) aciertos++;
+  idx++;
+  if(idx < 10){ mostrarPregunta(); } else { finalizar(); }
+}
+
+function finalizar(){
+  const total = preguntas.length;
+  if(aciertos === total){
+    localStorage.setItem("modulo2","aprobado");
+    document.getElementById('resultArea').innerHTML =
+      `<div class="alert alert-success">¡Aprobaste! Ya dominás el pase interior.</div>`;
+    fetch("/guardar_aprobacion", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({jugador_id:1, leccion_numero:2, nota:aciertos})
+    });
+    const btn = document.createElement('button');
+    btn.className = 'btn btn-success mt-3';
+    btn.textContent = 'Ver siguiente lección →';
+    btn.onclick = () => abrirLeccionDentro(3);
+    document.getElementById('resultArea').appendChild(btn);
+  }else{
+    document.getElementById('resultArea').innerHTML =
+      `<div class="alert alert-warning">Respondiste ${aciertos}/${total}. Necesitas 10/10 para aprobar.</div>`;
+    setTimeout(()=> volverAlModal(), 3000);
+  }
+}
+
+/* ==========  TEST  ========== */
+function mostrarTest() {
+  document.querySelector('.btn-leer').style.display = 'none';
+
+  const TIME_PER_Q = 12;
+  preguntas = [
+    {q:"¿Con qué parte del pie se ejecuta el pase interior?",opts:["Empeine","Interior","Planta","Talón"],ok:1},
+    {q:"¿Cómo debe quedar la cara interna del pie al momento de golpear?",opts:["Hacia arriba","Paralela al objetivo","Hacia abajo","Hacia atrás"],ok:1},
+    {q:"¿Dónde debe apoyarse el pie de apoyo?",opts:["Detrás del balón","Al costado del balón","Adelante del balón","Lejos del balón"],ok:1},
+    {q:"¿Qué evitás si pasás al pie bueno del compañero?",opts:["Que tire de zurda","Que tenga que acomodar","Que se caiga","Que salga corriendo"],ok:1},
+    {q:"En pista mojada, ¿qué conviene hacer?",opts:["Pasar más fuerte","Pasar más suave","No pasar","Pasar por arriba"],ok:1},
+    {q:"¿Cuál es el error de tobillo flojo?",opts:["El balón sube","El balón se va para afuera","El balón se clava","No pasa nada"],ok:1},
+    {q:"¿Qué pierde tu equipo si mirás el balón al pasar?",opts:["Tiempo","Opciones y ritmo","Goles","La pelota"],ok:1},
+    {q:"¿Qué es un pase de pared?",opts:["Un pase largo","Un pase y devolución rápida","Un pase en línea","Un pase al arco"],ok:1},
+    {q:"¿Cuántos toques máximos se recomiendan en el ejercicio de práctica?",opts:["Uno","Dos","Tres","Cuatro"],ok:1},
+    {q:"¿Qué define el pase interior además de la técnica?",opts:["La fuerza","El ritmo","La puntería","La velocidad"],ok:1}
+  ];
+
+  idx = 0; aciertos = 0;
+  mostrarPregunta();
+}
+
+function mostrarPregunta(){
+  const p = preguntas[idx];
+  let html = `<div class="timer-bar"><div class="timer-fill" style="width:100%"></div></div>
+              <b>Pregunta ${idx+1}/10</b> – ${p.q}<br><small id="countdown">12s</small><div class="mt-2">`;
+  p.opts.forEach((o,k)=> html += `
+    <div class="form-check">
+      <input class="form-check-input" type="radio" name="opt" id="o${k}" value="${k}">
+      <label class="form-check-label" for="o${k}" style="color:#fff;">${o}</label>
+    </div>`);
+  html += `</div><button class="btn btn-primary btn-sm mt-2" onclick="corregir()">Siguiente</button>`;
+  document.getElementById('testArea').innerHTML = html;
+
+  let seg = 12;
+  const bar = document.querySelector('.timer-fill');
+  const txt = document.getElementById('countdown');
+  timer = setInterval(()=>{
+    seg--;
+    bar.style.width = (seg/12*100) + '%';
+    txt.textContent = seg + 's';
+    if(seg === 0){ clearInterval(timer); timeOut(); }
+  },1000);
+}
+
+function timeOut(){
+  alert("Se acabó el tiempo. Volvé a intentarlo.");
+  volverAlModal();
+}
+</script>
+</body>
+</html>
