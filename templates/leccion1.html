@@ -183,7 +183,17 @@
     <button id="btnRegistrar" class="btn btn-success mt-2">Registrar y ver siguiente lección →</button>
   </div>
 
-  
+    <!-- Formulario de registro (solo aparece si aprueba 10/10) -->
+  <div id="registroFinal" class="registro-final" style="display:none;">
+    <h5>¡Aprobaste! Complete sus datos para registrar su aprobación:</h5>
+    <input type="text" id="regNombre" placeholder="Nombre completo" required>
+    <input type="text" id="regCedula" placeholder="Cédula" required>
+    <input type="number" id="regAnio" placeholder="Año de nacimiento" min="1900" max="2100" required>
+    <br>
+    <button id="btnRegistrar" class="btn btn-success mt-2">Registrar y ver siguiente lección →</button>
+  </div>
+
+  <script>
     /* ---------- REGISTRO AL FINAL (solo si aprueba) ---------- */
     document.getElementById('btnRegistrar').addEventListener('click', async () => {
       const nombre = document.getElementById('regNombre').value.trim();
@@ -219,7 +229,6 @@
       window.open("/leccion/2", "_blank");
     });
   </script>
-
 </body>
 </html>
-
+    
