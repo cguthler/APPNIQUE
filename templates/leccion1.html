@@ -157,6 +157,52 @@
     volverAlModal();
   }
 </script>
+  <!-- Formulario de registro (solo aparece si aprueba 10/10) -->
+  <div id="registroFinal" class="registro-final" style="display:none;">
+    <h5>¡Aprobaste! Complete sus datos para registrar su aprobación:</h5>
+    <input type="text" id="regNombre" placeholder="Nombre completo" required>
+    <input type="text" id="regCedula" placeholder="Cédula" required>
+    <input type="number" id="regAnio" placeholder="Año de nacimiento" min="1900" max="2100" required>
+    <br>
+    <button id="btnRegistrar" class="btn btn-success mt-2">Registrar y ver siguiente lección →</button>
+  </div>
+
+  
+    /* ---------- REGISTRO AL FINAL (solo si aprueba) ---------- */
+    document.getElementById('btnRegistrar').addEventListener('click', async () => {
+      const nombre = document.getElementById('regNombre').value.trim();
+      const cedula = document.getElementById('regCedula').value.trim();
+      const anio = parseInt(document.getElementById('regAnio').value);
+
+      if (!nombre || !cedula || !anio) {
+        alert("Completá todos los campos.");
+        return;
+      }
+
+      // 1. Crear jugador
+      const resJugador = await fetch("/api/registro_rapido", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({nombre, cedula, anio})
+      });
+      const jugador = await resJugador.json();
+
+      if (!jugador.id) {
+        alert("Error al registrar.");
+        return;
+      }
+
+      // 2. Guardar aprobación
+      await fetch("/guardar_aprobacion", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({jugador_id: jugador.id, leccion_numero: 1, nota: aciertos})
+      });
+
+      // 3. Ir a lección 2
+      window.open("/leccion/2", "_blank");
+    });
+  </script>
 
 </body>
 </html>
