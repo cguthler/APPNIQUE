@@ -1076,44 +1076,6 @@ def registro_rapido():
     conn.close()
     return {"id": jugador_id, "nombre": nombre}, 201
     
-# ---------- API JSON (para el front de la lección) ----------
-@app.route('/api/registro_rapido', methods=['POST'])
-def api_registro_rapido():
-    data = request.get_json(force=True)
-    nombre = data.get('nombre')
-    cedula = data.get('cedula')
-    anio   = data.get('anio')
-
-    if not all([nombre, cedula, anio]):
-        return {"error": "Faltan campos"}, 400
-
-    conn = sqlite3.connect('futbol.db')
-    cur = conn.cursor()
-    cur.execute("INSERT INTO jugadores (nombre, cedula, anio_nacimiento) VALUES (?,?,?)",
-                (nombre, cedula, anio))
-    conn.commit()
-    nuevo_id = cur.lastrowid
-    conn.close()
-    return {"id": nuevo_id}
-
-
-@app.route('/guardar_aprobacion', methods=['POST'])
-def api_guardar_aprobacion():
-    data = request.get_json(force=True)
-    jugador_id   = data.get('jugador_id')
-    leccion_num  = data.get('leccion_numero')
-    nota         = data.get('nota')
-
-    if not all([jugador_id, leccion_num, nota]):
-        return {"error": "Faltan campos"}, 400
-
-    conn = sqlite3.connect('futbol.db')
-    cur = conn.cursor()
-    cur.execute("INSERT INTO aprobaciones (jugador_id, leccion_numero, nota, fecha) VALUES (?,?,?,?)",
-                (jugador_id, leccion_num, nota, date.today().isoformat()))
-    conn.commit()
-    conn.close()
-    return {"ok": True}
     
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
