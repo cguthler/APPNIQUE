@@ -420,7 +420,11 @@ INDEX_HTML = """
       <button class="btn" onclick="document.getElementById('infoModal').style.display='block'">+ Info</button>
       <button class="btn" onclick="pedirClavePDF()">Cargar PDF</button>
       <button class="btn" onclick="abrirModal()">Formulario</button>
-      <button class="btn" onclick="if(document.getElementById('moduloModal'))abrirModulo();else alert('Modal no listo');">Módulo</button>
+     <!-- Pide cédula antes de abrir el test -->
+<div style="margin-bottom:10px;">
+  <input type="text" id="cedulaTest" placeholder="Ingresa tu cédula" maxlength="20" style="padding:6px;width:200px;">
+  <button class="btn btn-sm btn-primary" onclick="buscarYAbrirTest()">Comenzar test</button>
+</div>
     </div>
   </div>
 
@@ -563,6 +567,54 @@ INDEX_HTML = """
       alert(res.message);
       cerrarModal();
     }
+    /* ---------- GUARDAR APROBACIÓN (TEST) ---------- */
+async function finalizar() {
+  const total = preguntas.length;
+  if (aciertos === total) {
+    localStorage.setItem("modulo1", "aprobado");
+
+    // Usa el ID real del jugador que escribió su cédula
+    const jugadorId = window.jugadorIdReal || 1;
+
+    fetch("/guardar_aprobacion", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        jugador_id: jugadorId,
+        leccion_numero: 1,
+        nota: aciertos
+      })
+    });
+
+    document.getElementById('resultArea').innerHTML =
+      `<div class="alert alert-success">¡Aprobaste! Estás listo para jugar tu partido.</div>`;
+
+    const btnSiguiente = document.createElement('button');
+    btnSiguiente.className = 'btn btn-success mt-3';
+    btnSiguiente.textContent = 'Ver siguiente lección →';
+    btnSiguiente.onclick = () => abrirLeccionDentro(2);
+    document.getElementById('resultArea').appendChild(btnSiguiente);
+  } else {
+    document.getElementById('resultArea').innerHTML =
+      `<div class="alert alert-warning">Respondiste ${aciertos}/${total}. Necesitas 10/10 para aprobar.</div>`;
+    setTimeout(() => volverAlModal(), 3000);
+  }
+}
+
+/* ---------- FUNCIÓN NUEVA: BUSCAR Y ABRIR TEST ---------- */
+async function buscarYAbrirTest() {
+  const cedula = document.getElementById('cedulaTest').value.trim();
+  if (!cedula) { alert("Ingresa tu cédula"); return; }
+
+  const res = await fetch('/api/jugadores');
+  const data = await res.json();
+  const jugador = data.jugadores.find(j => j.cedula === cedula);
+
+  if (!jugador) { alert("No estás registrado. Regístrate primero."); return; }
+
+  window.jugadorIdReal = jugador.id;
+  abrirModal();
+}
   </script>
 
   <!-- Modal Inscripción -->
@@ -786,11 +838,16 @@ function finalizar(){
     localStorage.setItem("modulo1","aprobado");
     document.getElementById('resultArea').innerHTML =
       `<div class="alert alert-success">¡Aprobaste! Estás listo para jugar tu partido.</div>`;
+
+    // Usa el ID real del jugador que escribió su cédula
+    const jugadorId = window.jugadorIdReal || 1;
+
     fetch("/guardar_aprobacion", {
       method: "POST",
       headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({jugador_id:1, leccion_numero:1, nota:aciertos})
+      body: JSON.stringify({jugador_id: jugadorId, leccion_numero:1, nota:aciertos})
     });
+
     const btn = document.createElement('button');
     btn.className = 'btn btn-success mt-3';
     btn.textContent = 'Ver siguiente lección →';
