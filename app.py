@@ -449,7 +449,7 @@ INDEX_HTML = """
     <h2>Plantilla de Jugadores</h2>
     {% for j in jugadores %}
       <div class="jugador">
-        <img src="{% if j[6] %}{{ url_for('serve_img', name=j[6]) }}{% else %}#{% endif %}" alt="Foto">
+        <img src="{% if j[6] %}{{ j[6] }}{% else %}#{% endif %}" alt="Foto">
         <div class="info">
           <strong>{{ j[1] }}</strong>
           <span>{{ j[2] }} • {{ j[3] }}</span>
