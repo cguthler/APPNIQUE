@@ -1087,6 +1087,43 @@ def leccion(n):
             return render_template_string(f.read())
     except FileNotFoundError:
         return "Lección no encontrada", 404   
-    
+# ---------- VER DATOS CRUDOS (solo admin) ----------
+@app.route("/ver_datos")
+def ver_datos():
+    if not session.get("admin"):
+        return redirect(url_for("admin_login"))
+
+    conn = psycopg2.connect(DATABASE_URL)
+    cur = conn.cursor()
+
+    # 1. jugadores
+    cur.execute("SELECT id, nombre, cedula, anio_nacimiento FROM jugadores ORDER BY id DESC LIMIT 10")
+    jugadores = cur.fetchall()
+
+    # 2. inscripciones
+    cur.execute("SELECT i.id, j.nombre, i.cedula, i.torneo, i.estado, i.fecha "
+                "FROM inscripciones i JOIN jugadores j ON j.id = i.jugador_id "
+                "ORDER BY i.fecha DESC LIMIT 10")
+    inscripciones = cur.fetchall()
+
+    # 3. lecciones aprobadas
+    cur.execute("SELECT j.nombre, l.leccion_numero, l.nota, l.fecha_aprobado "
+                "FROM lecciones_aprobadas l JOIN jugadores j ON j.id = l.jugador_id "
+                "ORDER BY l.fecha_aprobado DESC LIMIT 10")
+    lecciones = cur.fetchall()
+
+    conn.close()
+
+    html = "<h2>Jugadores (top 10)</h2><ul>"
+    for j in jugadores:
+        html += f"<li>ID {j[0]} – {j[1]} – CI {j[2]} – Año {j[3]}</li>"
+    html += "</ul><h2>Inscripciones (top 10)</h2><ul>"
+    for i in inscripciones:
+        html += f"<li>ID {i[0]} – {i[1]} – CI {i[2]} – Torneo {i[3]} – Estado {i[4]} – {i[5]}</li>"
+    html += "</ul><h2>Lecciones aprobadas (top 10)</h2><ul>"
+    for l in lecciones:
+        html += f"<li>{l[0]} – Lección {l[1]} – Nota {l[2]}/10 – {l[3]}</li>"
+    html += "</ul><a href='/admin/panel'>← Volver</a>"
+    return html    
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
