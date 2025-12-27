@@ -1192,7 +1192,7 @@ def ver_datos():
     cur = conn.cursor()
 
     # 1. jugadores
-    cur.execute("SELECT id, nombre, anio_nacimiento, posicion FROM jugadores ORDER BY id DESC LIMIT 10")
+    cur.execute("SELECT id, nombre, anio_nacimiento, posicion, imagen FROM jugadores ORDER BY id DESC LIMIT 10")
     jugadores = cur.fetchall()
 
     # 2. inscripciones
@@ -1211,7 +1211,7 @@ def ver_datos():
 
     html = "<h2>Jugadores (top 10)</h2><ul>"
     for j in jugadores:
-        html += f"<li>ID {j[0]} – {j[1]} – Año {j[2]} – Pos {j[3]}</li>"
+       html += f"<li>ID {j[0]} – {j[1]} – Año {j[2]} – Pos {j[3]} – Img: {j[4] or 'Sin imagen'}</li>"
     html += "</ul><h2>Inscripciones (top 10)</h2><ul>"
     for i in inscripciones:
         html += f"<li>ID {i[0]} – {i[1]} – CI {i[2]} – Torneo {i[3]} – Estado {i[4]} – {i[5]}</li>"
