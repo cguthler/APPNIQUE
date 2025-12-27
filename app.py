@@ -47,24 +47,34 @@ with sqlite3.connect('futbol.db') as conn:
         );
     """)
     conn.commit()
-
-# ---------- API JSON ----------
+# ---------- API JSON (PostgreSQL) ----------
 @app.route('/api/registro_rapido', methods=['POST'])
 def api_registro_rapido():
+    from datetime import date
     data = request.get_json(force=True)
     nombre = data.get('nombre')
     cedula = data.get('cedula')
     anio   = data.get('anio')
+
     if not all([nombre, cedula, anio]):
         return jsonify({"error": "Faltan campos"}), 400
-    conn = sqlite3.connect('futbol.db')
+
+    conn = psycopg2.connect(DATABASE_URL)
     cur = conn.cursor()
-    cur.execute("INSERT INTO jugadores (nombre, cedula, anio_nacimiento) VALUES (?,?,?)",
-                (nombre, cedula, anio))
-    conn.commit()
-    nuevo_id = cur.lastrowid
-    conn.close()
-    return jsonify({"id": nuevo_id})
+    try:
+        cur.execute(
+            "INSERT INTO jugadores (nombre, cedula, anio_nacimiento, posicion, goles, asistencias, fecha_ingreso) "
+            "VALUES (%s, %s, %s, 'POR', 0, 0, %s) RETURNING id",
+            (nombre, cedula, anio, date.today().isoformat())
+        )
+        nuevo_id = cur.fetchone()[0]
+        conn.commit()
+        return jsonify({"id": nuevo_id, "nombre": nombre}), 201
+    except psycopg2.IntegrityError:
+        conn.rollback()
+        return jsonify({"error": "Cédula ya registrada"}), 409
+    finally:
+        conn.close()
 
 
 @app.route('/guardar_aprobacion', methods=['POST'])
