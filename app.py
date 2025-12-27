@@ -1165,6 +1165,8 @@ def asegurar_columnas():
                 print(f"✅ Columna '{col}' creada.")
     conn.commit()
     conn.close()
+# Se ejecuta una vez al cargar el módulo (tanto en local como en Render)
+asegurar_columnas()
+
 if __name__ == "__main__":
-    asegurar_columnas()   # crea las columnas si faltan
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
