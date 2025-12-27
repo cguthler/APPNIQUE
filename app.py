@@ -196,13 +196,18 @@ def guardar():
     goles = request.form["goles"]
     asistencias = request.form["asistencias"]
     imagen = ""
+    print(f"[DEBUG] ¿Archivo 'imagen' en request.files? {'imagen' in request.files}")
     if "imagen" in request.files:
         file = request.files["imagen"]
+        print(f"[DEBUG] Nombre de archivo: {file.filename}")
+        print(f"[DEBUG] ¿Archivo válido? {file and file.filename != '' and allowed_file(file.filename)}")
         if file and file.filename != "" and allowed_file(file.filename):
             try:
                 if RENDER:
+                    print("[DEBUG] Subiendo a Cloudinary...")
                     upload_res = cld_upload(file)
                     imagen = upload_res.get('secure_url')
+                    print(f"[DEBUG] URL de Cloudinary: {imagen}")
                     if not imagen:
                         raise ValueError("Cloudinary no devolvió URL")
                 else:
@@ -210,7 +215,9 @@ def guardar():
                     path = os.path.join(UPLOAD_IMG, filename)
                     file.save(path)
                     imagen = filename
+                    print(f"[DEBUG] Imagen guardada localmente: {path}")
             except Exception as e:
+                print(f"[DEBUG] Error al subir imagen: {str(e)}")
                 return f"❌ Error al subir imagen: {str(e)}", 500
 
     conn = psycopg2.connect(DATABASE_URL)
