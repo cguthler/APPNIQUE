@@ -4,6 +4,10 @@ from flask import (
     send_from_directory, session, jsonify
 )
 import sqlite3, os
+ALLOWED_IMG = {'png', 'jpg', 'jpeg', 'gif'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_IMG
 from datetime import date
 from werkzeug.utils import secure_filename
 import psycopg2
@@ -97,8 +101,8 @@ def api_guardar_aprobacion():
 
 
 # ---------- CONFIG DE CARPETAS ----------
-UPLOAD_IMG = "static/uploads"
-UPLOAD_DOCS = "static/uploads/docs"
+UPLOAD_IMG = os.path.join(os.getcwd(), "static", "uploads")
+UPLOAD_DOCS = os.path.join(os.getcwd(), "static", "uploads", "docs")
 os.makedirs(UPLOAD_IMG, exist_ok=True)
 os.makedirs(UPLOAD_DOCS, exist_ok=True)
 
@@ -191,19 +195,23 @@ def guardar():
     posicion = request.form["posicion"]
     goles = request.form["goles"]
     asistencias = request.form["asistencias"]
-
     imagen = ""
     if "imagen" in request.files:
         file = request.files["imagen"]
-        if file.filename != "":
-            if RENDER:
-                upload_res = cld_upload(file)
-                imagen = upload_res['secure_url']
-            else:
-                filename = secure_filename(file.filename)
-                path = os.path.join(UPLOAD_IMG, filename)
-                file.save(path)
-                imagen = filename
+        if file and file.filename != "" and allowed_file(file.filename):
+            try:
+                if RENDER:
+                    upload_res = cld_upload(file)
+                    imagen = upload_res.get('secure_url')
+                    if not imagen:
+                        raise ValueError("Cloudinary no devolvió URL")
+                else:
+                    filename = secure_filename(file.filename)
+                    path = os.path.join(UPLOAD_IMG, filename)
+                    file.save(path)
+                    imagen = filename
+            except Exception as e:
+                return f"❌ Error al subir imagen: {str(e)}", 500
 
     conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
