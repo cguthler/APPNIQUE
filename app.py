@@ -124,14 +124,25 @@ def init_db():
                 fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
-        # ✅ Columna nueva para URL de Cloudinary
+         # ✅ Columna nueva para URL de Cloudinary
         cur.execute("""
             ALTER TABLE jugadores
             ADD COLUMN IF NOT EXISTS pdf_url TEXT;
         """)
-
-        conn.commit()
-    conn.close()
+        # ✅ Tabla de aprobaciones
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS lecciones_aprobadas (
+                id SERIAL PRIMARY KEY,
+                jugador_id INTEGER REFERENCES jugadores(id) ON DELETE CASCADE,
+                leccion_numero INTEGER CHECK (leccion_numero BETWEEN 1 AND 10),
+                nota INTEGER CHECK (nota BETWEEN 0 AND 10),
+                fecha_aprobado TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE (jugador_id, leccion_numero)
+            );
+        """)
+    # <-- aquí termina el WITH
+    conn.commit()
+    conn.close()      
 
 @app.route("/admin/panel")
 def admin_panel():
