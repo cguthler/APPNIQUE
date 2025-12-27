@@ -136,6 +136,7 @@ def init_db():
                 fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
+        cur.execute("ALTER TABLE jugadores ADD COLUMN IF NOT EXISTS cedula TEXT UNIQUE;")
          # ✅ Columna nueva para URL de Cloudinary
         cur.execute("""
             ALTER TABLE jugadores
@@ -206,10 +207,10 @@ def guardar():
 
     conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
-    cursor.execute(
-        "INSERT INTO jugadores (nombre, anio_nacimiento, posicion, goles, asistencias, imagen) VALUES (%s, %s, %s, %s, %s, %s)",
-        (nombre, int(anio), posicion, int(goles), int(asistencias), imagen)
-    )
+   cursor.execute(
+    "INSERT INTO jugadores (nombre, cedula, anio_nacimiento, posicion, goles, asistencias, imagen) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+    (nombre, cedula, int(anio), posicion, int(goles), int(asistencias), imagen)
+)
     conn.commit()
     conn.close()
 
