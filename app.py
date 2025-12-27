@@ -264,10 +264,10 @@ def subir_pdf(jugador_id):
 def api_jugadores():
     conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
-    cursor.execute("SELECT id, nombre FROM jugadores ORDER BY nombre")
+    cursor.execute("SELECT id, nombre, cedula FROM jugadores ORDER BY nombre")
     rows = cursor.fetchall()
     conn.close()
-    return {"jugadores": [{"id": r[0], "nombre": r[1]} for r in rows]}
+    return {"jugadores": [{"id": r[0], "nombre": r[1], "cedula": r[2]} for r in rows]}
 
 # ---------- API: guardar inscripción ----------
 @app.route("/api/inscripciones", methods=["POST"])
