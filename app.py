@@ -438,7 +438,7 @@ INDEX_HTML = """
       <button class="btn" onclick="abrirModal()">Formulario</button>
       <div style="margin-top:10px;">
   <input type="text" id="cedulaTest" placeholder="Ingresa tu cédula" maxlength="20" style="padding:6px;width:200px;">
-  <button class="btn btn-sm btn-success" onclick="buscarYAbrirTest()">Comenzar test</button>
+  <button class="btn btn-sm btn-success" onclick="buscarYAbrirTest()">Modulos</button>
 </div>
      <!-- Pide cédula antes de abrir el test -->
 <div style="margin-bottom:10px;">
@@ -695,6 +695,64 @@ function abrirModulo(){
       <button class="btn btn-sm btn-secondary mt-3" onclick="location.reload()">Cerrar</button>
     </div>`;
   modal.style.display = 'block';
+}
+
+function abrirLeccionDentro(n){
+  fetch("/leccion/" + n)
+    .then(r => r.text())
+    .then(html => {
+      const modal = document.getElementById('moduloModal');
+      modal.innerHTML = html;
+      modal.style.display = 'block';
+      modal.scrollTop = 0;
+    });
+}
+
+function volverAlModal(){
+  location.reload();
+}
+</script>
+<script>
+/* ---------- MODAL CENTRADO Y SCROLLEABLE ---------- */
+function abrirModulo(){
+  /* si ya existe solo lo mostramos */
+  let overlay = document.getElementById('overlayModulos');
+  if(!overlay){
+    overlay = document.createElement('div');
+    overlay.id = 'overlayModulos';
+    overlay.style.cssText = `
+      position:fixed; inset:0;                  /* tapa toda la pantalla */
+      background:rgba(0,0,0,.75);               /* fondo oscuro */
+      display:flex; align-items:center; justify-content:center;
+      z-index:9999;
+    `;
+    overlay.innerHTML = `
+      <div style="
+        background:#1b263b; color:#ffff00; border-radius:12px; padding:25px 30px;
+        max-width:480px; width:90%; max-height:80vh; overflow-y:auto;
+        box-shadow:0 8px 30px rgba(0,0,0,.6);
+      ">
+        <span style="float:right;cursor:pointer;" onclick="cerrarModulo()">&times;</span>
+        <h3>Lecciones del Módulo</h3>
+        <div class="list-group" style="margin-top:15px;">
+          ${[...Array(10)].map((_,i)=>`
+            <a href="#" class="list-group-item" onclick="abrirLeccionDentro(${i+1}); return false;">
+              Lección ${i+1}: ${['Fundamentos y reglas','Pase interior','Conducción','Control orientado','Presión tras pérdida','Saque de banda','Corner a favor','Corner en contra','Posesión y descanso','Fair Play y actitud'][i]}
+            </a>`).join('')}
+        </div>
+        <button class="btn btn-sm btn-secondary mt-3" onclick="cerrarModulo()">Cerrar</button>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click',e=>{ if(e.target===overlay) cerrarModulo(); });
+    document.addEventListener('keydown',e=>{ if(e.key==='Escape') cerrarModulo(); });
+  }
+  overlay.style.display = 'flex';
+}
+
+function cerrarModulo(){
+  const m = document.getElementById('overlayModulos');
+  if(m) m.style.display = 'none';
 }
 
 function abrirLeccionDentro(n){
