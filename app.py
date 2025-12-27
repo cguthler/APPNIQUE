@@ -207,13 +207,12 @@ def guardar():
 
     conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
-   cursor.execute(
-    "INSERT INTO jugadores (nombre, cedula, anio_nacimiento, posicion, goles, asistencias, imagen) VALUES (%s, %s, %s, %s, %s, %s, %s)",
-    (nombre, cedula, int(anio), posicion, int(goles), int(asistencias), imagen)
-)
+    cursor.execute(
+        "INSERT INTO jugadores (nombre, cedula, anio_nacimiento, posicion, goles, asistencias, imagen) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+        (nombre, cedula, int(anio), posicion, int(goles), int(asistencias), imagen)
+    )
     conn.commit()
     conn.close()
-
     return redirect(url_for("admin_panel"))
     
 @app.route("/subir_pdf/<int:jugador_id>", methods=["POST"])
