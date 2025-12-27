@@ -436,10 +436,14 @@ INDEX_HTML = """
       <button class="btn" onclick="document.getElementById('infoModal').style.display='block'">+ Info</button>
       <button class="btn" onclick="pedirClavePDF()">Cargar PDF</button>
       <button class="btn" onclick="abrirModal()">Formulario</button>
+      <div style="margin-top:10px;">
+  <input type="text" id="cedulaTest" placeholder="Ingresa tu cédula" maxlength="20" style="padding:6px;width:200px;">
+  <button class="btn btn-sm btn-success" onclick="buscarYAbrirTest()">Comenzar test</button>
+</div>
      <!-- Pide cédula antes de abrir el test -->
 <div style="margin-bottom:10px;">
   <input type="text" id="cedulaTest" placeholder="Ingresa tu cédula" maxlength="20" style="padding:6px;width:200px;">
-  <button class="btn btn-sm btn-primary" onclick="buscarYAbrirTest()">Comenzar test</button>
+  
 </div>
     </div>
   </div>
@@ -629,7 +633,7 @@ async function buscarYAbrirTest() {
   if (!jugador) { alert("No estás registrado. Regístrate primero."); return; }
 
   window.jugadorIdReal = jugador.id;
-  abrirModal();
+  abrirLeccionDentro(1); // ✅ ABRE LECCIÓN 1
 }
   </script>
 
