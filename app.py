@@ -6,6 +6,8 @@ from flask import (
 import sqlite3, os
 from datetime import date
 from werkzeug.utils import secure_filename
+import psycopg2
+from psycopg2 import sql
 
 # ---------- CONFIG GRATIS EN LA NUBE ----------
 import os, psycopg2, cloudinary
@@ -1136,5 +1138,33 @@ def ver_datos():
         html += f"<li>{l[0]} – Lección {l[1]} – Nota {l[2]}/10 – {l[3]}</li>"
     html += "</ul><a href='/admin/panel'>← Volver</a>"
     return html
+
+def asegurar_columnas():
+    conn = psycopg2.connect(DATABASE_URL)
+    with conn.cursor() as cur:
+        columnas = [
+            ("cedula", "TEXT"),
+            ("posicion", "TEXT"),
+            ("goles", "INTEGER"),
+            ("asistencias", "INTEGER"),
+            ("imagen", "TEXT"),
+            ("fecha_ingreso", "TEXT"),
+            ("pdf_url", "TEXT")
+        ]
+        for col, tipo in columnas:
+            cur.execute(
+                "SELECT 1 FROM information_schema.columns "
+                "WHERE table_name='jugadores' AND column_name=%s",
+                (col,)
+            )
+            if not cur.fetchone():
+                cur.execute(
+                    sql.SQL("ALTER TABLE jugadores ADD COLUMN {} {}")
+                    .format(sql.Identifier(col), sql.SQL(tipo))
+                )
+                print(f"✅ Columna '{col}' creada.")
+    conn.commit()
+    conn.close()
 if __name__ == "__main__":
+    asegurar_columnas()   # crea las columnas si faltan
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
