@@ -185,6 +185,7 @@ def guardar():
         return redirect(url_for("admin_login"))
 
     nombre = request.form["nombre"]
+    cedula = request.form["cedula"]     
     anio = request.form["anio_nacimiento"]
     posicion = request.form["posicion"]
     goles = request.form["goles"]
@@ -708,6 +709,8 @@ ADMIN_PANEL_HTML = """
 <a href="/">Ver vista pública</a>
 <form method="post" action="/guardar" enctype="multipart/form-data">
   <label>Nombre completo</label><input name="nombre" required>
+  <label>Cédula:</label>
+<input type="text" name="cedula" pattern="[0-9]+" maxlength="20" placeholder="Cédula del jugador" required>
   <label>Año de nacimiento</label><input type="number" name="anio_nacimiento" required>
   <label>Posición</label><input name="posicion" required>
   <label>Goles</label><input type="number" name="goles" required>
