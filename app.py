@@ -1087,6 +1087,7 @@ def leccion(n):
             return render_template_string(f.read())
     except FileNotFoundError:
         return "Lección no encontrada", 404   
+
 # ---------- VER DATOS CRUDOS (solo admin) ----------
 @app.route("/ver_datos")
 def ver_datos():
@@ -1097,7 +1098,7 @@ def ver_datos():
     cur = conn.cursor()
 
     # 1. jugadores
-    cur.execute("SELECT id, nombre, cedula, anio_nacimiento FROM jugadores ORDER BY id DESC LIMIT 10")
+    cur.execute("SELECT id, nombre, anio_nacimiento, posicion FROM jugadores ORDER BY id DESC LIMIT 10")
     jugadores = cur.fetchall()
 
     # 2. inscripciones
@@ -1116,7 +1117,7 @@ def ver_datos():
 
     html = "<h2>Jugadores (top 10)</h2><ul>"
     for j in jugadores:
-        html += f"<li>ID {j[0]} – {j[1]} – CI {j[2]} – Año {j[3]}</li>"
+        html += f"<li>ID {j[0]} – {j[1]} – Año {j[2]} – Pos {j[3]}</li>"
     html += "</ul><h2>Inscripciones (top 10)</h2><ul>"
     for i in inscripciones:
         html += f"<li>ID {i[0]} – {i[1]} – CI {i[2]} – Torneo {i[3]} – Estado {i[4]} – {i[5]}</li>"
@@ -1124,6 +1125,6 @@ def ver_datos():
     for l in lecciones:
         html += f"<li>{l[0]} – Lección {l[1]} – Nota {l[2]}/10 – {l[3]}</li>"
     html += "</ul><a href='/admin/panel'>← Volver</a>"
-    return html    
+    return html
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
