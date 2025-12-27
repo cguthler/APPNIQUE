@@ -620,31 +620,33 @@ async function buscarYAbrirTest() {
   <!-- Modal Inscripción -->
   <div id="modalInscripcion" class="ventana" style="display:none; position:fixed; top:10%; left:50%; transform:translateX(-50%); z-index:9999; max-width:480px; width:90%;">
     <span style="float:right;cursor:pointer;" onclick="cerrarModal()">&times;</span>
-    <h3>Formulario de Inscripción</h3>
-    <form id="formInscripcion" onsubmit="guardarInscripcion(event)">
-      <label>Nombres completos:</label>
-      <input type="text" id="nombres" list="listaJugadores" placeholder="Escribe para ver jugadores" required autocomplete="off">
-      <datalist id="listaJugadores"></datalist>
+  
+ <h3>Formulario de Inscripción</h3>
+<form id="formInscripcion" onsubmit="guardarInscripcion(event)">
+  <label>Nombres completos:</label>
+  <input type="text" id="nombres" list="listaJugadores" placeholder="Escribe para ver jugadores" required autocomplete="off">
+  
+  <label>Cédula de ciudadanía:</label>
+  <input type="text" id="cedula" pattern="[0-9]+" maxlength="20" placeholder="Ingrese su cédula" required>
+  <datalist id="listaJugadores"></datalist>
 
-      <label>Cédula de ciudadanía:</label>
-      <input type="text" id="cedula" pattern="\d+" title="Solo números" required>
+  <label>Año de nacimiento:</label>
+  <input type="number" id="anio" min="1900" max="2100" required>
 
-      <label>Año de nacimiento:</label>
-      <input type="number" id="anio" min="1900" max="2100" required>
+  <label>Torneo:</label>
+  <select id="torneo" required>
+    <option value="">-- Seleccione --</option>
+    <option>Liga Futbol Fest</option>
+    <option>Liga Internacional World Cup 2026</option>
+    <option>Liga Samanes</option>
+    <option>Liga Miraflores</option>
+    <option>Liga Mucho Lote</option>
+    <option>Duran Amateur League</option>
+    <option>Otros</option>
+  </select>
 
-      <label>Torneo:</label>
-      <select id="torneo" required>
-        <option value="">-- Seleccione --</option>
-        <option>Liga Futbol Fest</option>
-        <option>Liga Internacional World Cup 2026</option>
-        <option>Liga Samanes</option>
-        <option>Liga Miraflores</option>
-        <option>Liga Mucho Lote</option>
-        <option>Duran Amateur League</option>
-        <option>Otros</option>
-      </select><button type="submit" class="btn" style="width:100%; margin-top:15px;">Registrar</button>
-  </form>
-  </div>
+  <button type="submit" class="btn" style="width:100%; margin-top:15px;">Registrar</button>
+</form> </div>
 </div>   <!-- cierra modalInscripcion -->
 
 <!-- Modal Módulo -->
