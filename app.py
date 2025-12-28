@@ -584,7 +584,7 @@ async function finalizar() {
     // Usa el ID real del jugador que escribió su cédula
     const jugadorId = window.jugadorIdReal || 1;
 
-    fetch("/guardar_aprobacion", {
+      fetch("/guardar_aprobacion_pg", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -940,7 +940,7 @@ LECCION_1_HTML = """
     document.getElementById('resultArea').innerHTML =
       `<div class="alert alert-success">Usted aprobó el módulo. ¡Felicitaciones, está listo para jugar su partido!</div>`;
 
-    fetch("/guardar_aprobacion", {
+      fetch("/guardar_aprobacion_pg", {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({
@@ -961,19 +961,21 @@ LECCION_1_HTML = """
     document.getElementById('resultArea').innerHTML =
       `<div class="alert alert-warning">Respondiste ${aciertos}/${total}. Necesitas 10/10 para aprobar.</div>`;
     setTimeout(()=> volverAlModal(), 3000);
+       }   // ← cierra else de finalizar()
+    }     // ← cierra function finalizar()
+
+    mostrarPregunta();
+  }       // ← cierra function mostrarTest()
+
+  function volverAlModal() {
+    location.reload();
   }
-} 
 
-      mostrarPregunta();
-    }
-
-    function volverAlModal() {
-      location.reload();
-    }
-  </script>
-</body>
-</html>
-"""
+  // Función que falta
+  function abrirLeccionDentro(num) {
+    window.location.href = '/leccion/' + num;   // o tu lógica de carga
+  }
+</script>
 
 # ---------- VERIFICAR APROBACIONES ----------
 @app.route("/ver_lecciones")
