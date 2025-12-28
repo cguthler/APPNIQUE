@@ -32,27 +32,6 @@ if RENDER:
 app = Flask(__name__)
 app.secret_key = "clave_secreta_niquee"
 
-# ---------- CREAR TABLAS ----------
-with sqlite3.connect('futbol.db') as conn:
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS jugadores (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nombre TEXT NOT NULL,
-            cedula TEXT UNIQUE NOT NULL,
-            anio_nacimiento INTEGER
-        );
-    """)
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS aprobaciones (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            jugador_id INTEGER,
-            leccion_numero INTEGER,
-            nota INTEGER,
-            fecha TEXT,
-            FOREIGN KEY(jugador_id) REFERENCES jugadores(id)
-        );
-    """)
-    conn.commit()
 # ---------- API JSON (PostgreSQL) ----------
 @app.route('/api/registro_rapido', methods=['POST'])
 def api_registro_rapido():
@@ -82,24 +61,6 @@ def api_registro_rapido():
     finally:
         conn.close()
 
-
-@app.route('/guardar_aprobacion', methods=['POST'])
-def api_guardar_aprobacion():
-    data = request.get_json(force=True)
-    jugador_id   = data.get('jugador_id')
-    leccion_num  = data.get('leccion_numero')
-    nota         = data.get('nota')
-    if not all([jugador_id, leccion_num, nota]):
-        return jsonify({"error": "Faltan campos"}), 400
-    conn = sqlite3.connect('futbol.db')
-    cur = conn.cursor()
-    cur.execute("INSERT INTO aprobaciones (jugador_id, leccion_numero, nota, fecha) VALUES (?,?,?,?)",
-                (jugador_id, leccion_num, nota, date.today().isoformat()))
-    conn.commit()
-    conn.close()
-    return jsonify({"ok": True})
-
-
 # ---------- CONFIG DE CARPETAS ----------
 UPLOAD_IMG = os.path.join(os.getcwd(), "static", "uploads")
 UPLOAD_DOCS = os.path.join(os.getcwd(), "static", "uploads", "docs")
@@ -120,13 +81,14 @@ def init_db():
             CREATE TABLE IF NOT EXISTS jugadores (
                 id SERIAL PRIMARY KEY,
                 nombre TEXT,
+                cedula TEXT UNIQUE,
                 anio_nacimiento INTEGER,
                 posicion TEXT,
                 goles INTEGER,
                 asistencias INTEGER,
                 imagen TEXT,
                 fecha_ingreso TEXT,
-                pdf TEXT
+                pdf_url TEXT
             )
         """)
         cur.execute(""" 
@@ -140,8 +102,8 @@ def init_db():
                 fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
-        cur.execute("ALTER TABLE jugadores ADD COLUMN IF NOT EXISTS cedula TEXT UNIQUE;")
-         # ✅ Columna nueva para URL de Cloudinary
+      
+        # ✅ Columna nueva para URL de Cloudinary
         cur.execute("""
             ALTER TABLE jugadores
             ADD COLUMN IF NOT EXISTS pdf_url TEXT;
@@ -173,7 +135,6 @@ def admin_panel():
     rows = cursor.fetchall()
     conn.close()
     return render_template_string(ADMIN_PANEL_HTML, jugadores=rows)
-
 @app.route("/admin", methods=["GET", "POST"])
 def admin_login():
     if request.method == "POST":
@@ -183,62 +144,53 @@ def admin_login():
         else:
             return "❌ Contraseña incorrecta"
     return render_template_string(ADMIN_LOGIN_HTML)
-
-@app.route("/guardar", methods=["POST"])
-def guardar():
-    if not session.get("admin"):
-        return redirect(url_for("admin_login"))
-
-    nombre = request.form["nombre"]
-    cedula = request.form["cedula"]     
-    anio = request.form["anio_nacimiento"]
-    posicion = request.form["posicion"]
-    goles = request.form["goles"]
-    asistencias = request.form["asistencias"]
-    imagen = ""
-    print(f"[DEBUG] ¿Archivo 'imagen' en request.files? {'imagen' in request.files}")
-    if "imagen" in request.files:
-        file = request.files["imagen"]
-        print(f"[DEBUG] Nombre de archivo: {file.filename}")
-        print(f"[DEBUG] ¿Archivo válido? {file and file.filename != '' and allowed_file(file.filename)}")
-        if file and file.filename != "" and allowed_file(file.filename):
-            try:
-                if RENDER:
-                    print("[DEBUG] Subiendo a Cloudinary...")
-                    upload_res = cld_upload(file)
-                    imagen = upload_res.get('secure_url')
-                    print(f"[DEBUG] URL de Cloudinary: {imagen}")
-                    if not imagen:
-                        raise ValueError("Cloudinary no devolvió URL")
-                else:
-                    filename = secure_filename(file.filename)
-                    path = os.path.join(UPLOAD_IMG, filename)
-                    file.save(path)
-                    imagen = filename
-                    print(f"[DEBUG] Imagen guardada localmente: {path}")
-            except Exception as e:
-                print(f"[DEBUG] Error al subir imagen: {str(e)}")
-                return f"❌ Error al subir imagen: {str(e)}", 500
+    
+# ---------- GUARDAR APROBACIÓN (PostgreSQL) ----------
+@app.route("/guardar_aprobacion_pg", methods=["POST"])
+def guardar_aprobacion_pg():
+    data = request.get_json()
+    jugador_id = data.get("jugador_id")
+    leccion_numero = data.get("leccion_numero")
+    nota = data.get("nota")
 
     conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
-    cursor.execute(
-        "INSERT INTO jugadores (nombre, cedula, anio_nacimiento, posicion, goles, asistencias, imagen) VALUES (%s, %s, %s, %s, %s, %s, %s)",
-        (nombre, cedula, int(anio), posicion, int(goles), int(asistencias), imagen)
-    )
-    conn.commit()
-    conn.close()
-    return redirect(url_for("admin_panel"))
-    
+    try:
+        cursor.execute(
+            """
+            INSERT INTO lecciones_aprobadas (jugador_id, leccion_numero, nota)
+            VALUES (%s, %s, %s)
+            ON CONFLICT (jugador_id, leccion_numero)
+            DO UPDATE SET nota = EXCLUDED.nota,
+                          fecha_aprobado = NOW()
+            """,
+            (jugador_id, leccion_numero, nota)
+        )
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        return {"status": "error", "msg": str(e)}, 500
+    finally:
+        conn.close()
+
+    return {"status": "ok"}, 200
 @app.route("/subir_pdf/<int:jugador_id>", methods=["POST"])
 def subir_pdf(jugador_id):
+    # 1. sólo admin puede subir
+    if not session.get("admin"):
+        return "❌ Acceso denegado", 403
+
     file = request.files.get("pdf")
     if not file or file.filename == "":
         return "Archivo no válido", 400
     if not file.filename.lower().endswith(".pdf"):
         return "Solo se permite PDF", 400
 
-    # Subimos a Cloudinary en carpeta privada por jugador
+    # 2. tamaño máximo 10 MB
+    if request.content_length and request.content_length > 10 * 1024 * 1024:
+        return "PDF demasiado grande (máx 10 MB)", 413
+
+    # 3. subida a Cloudinary
     resultado = cld_upload(
         file,
         resource_type='raw',
@@ -247,7 +199,7 @@ def subir_pdf(jugador_id):
     )
     pdf_url = resultado['secure_url']
 
-    # Guardamos la URL en el jugador correspondiente
+    # 4. guardar URL en PostgreSQL
     conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
     cursor.execute(
@@ -257,6 +209,7 @@ def subir_pdf(jugador_id):
     conn.commit()
     conn.close()
 
+    # 5. mismo redireccionamiento original
     return redirect(url_for("index"))
    
 # ---------- API: lista de jugadores para autocompletar ----------
@@ -299,12 +252,12 @@ def serve_img(name):
 @app.route('/docs/<name>')
 def serve_pdf(name):
     if not session.get("admin"):
-        return "❌ Acceso denegado"
+        return "❌ Acceso denegado", 403
+
+    safe_name = secure_filename(name)          # ← elimina ../, etc.
     if RENDER:
         return redirect(name)
-    else:
-        return send_from_directory(UPLOAD_DOCS, name)
-
+    return send_from_directory(UPLOAD_DOCS, safe_name)
 @app.route("/borrar/<int:jugador_id>")
 def borrar(jugador_id):
     if not session.get("admin"):
@@ -455,8 +408,8 @@ INDEX_HTML = """
       <div class="jugador">
         <img src="{% if j[6] %}{{ j[6] }}{% else %}#{% endif %}" alt="Foto">
         <div class="info">
-          <strong>{{ j[1] }}</strong>
-          <span>{{ j[2] }} • {{ j[3] }}</span>
+          <strong>{{ j[1]|e }}</strong>
+          <span>{{ j[2]|e }} • {{ j[3]|e }}</span>
           <span>G:{{ j[4] }} • A:{{ j[5] }}</span>
           {% if j[7] %}
             <a href="{{ j[7] }}" download="{{ j[1] | replace(' ', '_') }}_acta.pdf" style="color:#ffff80;font-size:13px;">&#128196; Descargar PDF</a>
@@ -807,7 +760,6 @@ ADMIN_PANEL_HTML = """
 """
 @app.route("/")
 def index():
-    init_db()
     conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
     cursor.execute(
@@ -817,188 +769,6 @@ def index():
     conn.close()
     return render_template_string(INDEX_HTML, jugadores=jugadores, PDF_PASSWORD=PDF_PASSWORD, FORM_PASSWORD=FORM_PASSWORD)
 
-# ---------- LECCIÓN 1 ----------
-LECCION_1_HTML = """
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8">
-  <title>Lección 1 - Fundamentos y reglas</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    body{background:#1b263b;color:#ffffff;font-family:Segoe UI,system-ui,sans-serif}
-    .ventana{background:#1b263b;border-radius:12px;padding:20px;color:#ffff00}
-    .btn-leer{background:#415a77;color:#ffff00;border:none;padding:10px 18px;border-radius:8px;cursor:pointer;font-size:15px}
-    .btn-leer:hover{background:#5a7fb0}
-  </style><style>
-  /* ===== MODAL-LECCIÓN ===== */
-  #moduloModal{
-    max-height:80vh;          /* altura máxima 80 % de la pantalla */
-    overflow-y:auto;          /* scroll vertical si el contenido es largo */
-    padding:20px;             /* separación interna */
-    box-sizing:border-box;
-  }
-  .modal-content{
-    background:#1b263b;
-    color:#ffff00;
-    border-radius:12px;
-    padding:25px;
-  }
-  .timer-bar{ width:100%; height:6px; background:#eee; margin-bottom:8px; }
-  .timer-fill{ height:100%; background:#0d6efd; transition:width 1s linear; }
-  /* test */
-  #testArea{ margin-top:15px; }
-  #resultArea{ margin-top:10px; }
-</style>
-  
-</head>
-<body class="p-4">
-  <!-- Botón volver -->
-  <button onclick="volverAlModal()" class="btn btn-sm btn-secondary mb-3">← Volver al módulo</button>
-
-  <div class="ventana" style="max-width:700px;margin:auto">
-    <h4>Lección 1: Fundamentos y reglas del fútbol</h4>
-    <div class="mt-3 p-3 bg-dark rounded small">
-      <p>
-        Listos para el partido esperado, el árbitro coloca el balón sobre el círculo central y pita el inicio. Cada jugador entiende que:<br>
-        Primero, <strong>la mano</strong>: solo el portero puede usarla y solo dentro del rectángulo. Cualquier otro contacto es falta inmediata y, en el área, penal.<br>
-        Segundo, <strong>el offside</strong>: si al recibir estás más cerca del arco que el último defensa, el banderín levanta y la jugada muere.<br>
-        Tercero, <strong>el saque de banda</strong>: dos pies en el campo, balón detrás de la cabeza; si uno se adelanta o la tira mal, pierdes el saque.<br><br>
-
-        Con las reglas claras, llegan los <strong>fundamentos</strong>:<br>
-        - Controlar con el interior del pie o pisarla, no con el empeine, para que la pelota se detenga junto al pie y no tres metros adelante.<br>
-        - Pasar con el interior, tobillo firme, al pie bueno del compañero: reduce un toque y evita el rebote.<br>
-        - Disparar mirando al portero, no pensar al que dirán, y apuntar al poste cercano.<br>
-        - En defensa, marcar de costado, brazo extendido, sin derribar.<br>
-        - Desmarcarse antes de pedir: dos pasos al espacio y una señal con la mano bastan para romper líneas sin offside.<br>
-        - En saques laterales, destinarla al jugador delante nuestro más cercano, llamándole la atención.<br><br>
-
-        Las <strong>mañas</strong> permiten ganar segundos:<br>
-        - Provocar que el balón golpee en las piernas del rival para ganar corners o laterales.<br>
-        - Sacar rápido de banda mientras el otro discute.<br>
-        - Descansar con la pelota dirigiendo el juego hacia el portero nuestro para tomar aliento y volver a empezar.<br><br>
-
-        Pero aparecen los <strong>errores típicos del juego amateur</strong>:<br>
-        - Protestar cada pitazo: amarilla gratuita, reclamarse entre nosotros muestra un equipo nervioso.<br>
-        - Correr todos tras la pelota: se cierra el campo y desaparecen los pases.<br>
-        - Pedirla estático: el defensa ya te tapa y perdés en la primera.<br>
-        - Quedarse mirando la jugada: el rival contraataca y te coge parado en ventaja.<br>
-        - Olvidan volver después de una buena jugada, no marcar hombre a hombre en saques laterales rivales y tiros de esquina.<br>
-        - Salir desde el área por el centro no es recomendable, <strong>SALGA POR LOS LATERALES O A LA RAYA</strong>.<br><br>
-
-        Cuando el árbitro pita el final, el equipo que supo conjugar reglas, fundamentos y pequeñas dosis de profesionalismo se lleva los tres puntos y la satisfacción de haber jugado al fútbol sin sobresaltos ni reclamos.
-      </p>
-    </div>
-
- <!-- Botón para desplegar el test -->
-<div class="text-center mt-4">
-  <button class="btn-leer" onclick="mostrarTest()">Leído → Comenzar test</button>
-</div>
-
-<!-- Aquí se insertará el test más tarde -->
-<div id="testArea"></div>
-<div id="resultArea" class="mt-3"></div>
-
-<script>
-/* ==========  FUNCIONES GLOBALES  ========== */
-function volverAlModal() {
-  location.reload();
-}
-
-function corregir(){
-  const sel = document.querySelector('input[name="opt"]:checked');
-  if(!sel){ alert("Elegí una opción."); return; }
-  clearInterval(timer);
-  if(parseInt(sel.value) === preguntas[idx].ok) aciertos++;
-  idx++;
-  if(idx < 10){ mostrarPregunta(); } else { finalizar(); }
-}
-
-function finalizar(){
-  const total = preguntas.length;
-  if(aciertos === total){
-    localStorage.setItem("modulo1","aprobado");
-    document.getElementById('resultArea').innerHTML =
-      `<div class="alert alert-success">¡Aprobaste! Estás listo para jugar tu partido.</div>`;
-
-    // Usa el ID real del jugador que escribió su cédula
-    const jugadorId = window.jugadorIdReal || 1;
-
-    fetch("/guardar_aprobacion", {
-      method: "POST",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({jugador_id: jugadorId, leccion_numero:1, nota:aciertos})
-    });
-
-    const btn = document.createElement('button');
-    btn.className = 'btn btn-success mt-3';
-    btn.textContent = 'Ver siguiente lección →';
-    btn.onclick = () => abrirLeccionDentro(2);
-    document.getElementById('resultArea').appendChild(btn);
-  }else{
-    document.getElementById('resultArea').innerHTML =
-      `<div class="alert alert-warning">Respondiste ${aciertos}/${total}. Necesitas 10/10 para aprobar.</div>`;
-    setTimeout(()=> volverAlModal(), 3000);
-  }
-}
-
-/* ==========  TEST  ========== */
-function mostrarTest() {
-  // Oculta el botón
-  document.querySelector('.btn-leer').style.display = 'none';
-
-  const TIME_PER_Q = 12;
-  const preguntas = [
-    {q:"¿Quién puede usar las manos dentro del rectángulo?",opts:["Cualquier jugador","Solo el portero","El capitán","Nadie"],ok:1},
-    {q:"¿Qué ocurre si estás más cerca del arco que el último defensa al recibir un pase?",opts:["Gol válido","Falta directa","Offside","Saque de meta"],ok:2},
-    {q:"¿Cómo se debe realizar el saque de banda?",opts:["Con un pie en la línea","Saltando","Dos pies en el campo y pelota detrás de la cabeza","Con la mano"],ok:2},
-    {q:"¿Dónde se cobra un penal?",opts:["Desde el círculo central","Desde el punto penal","Desde la banda","Desde el corner"],ok:1},
-    {q:"¿Con qué parte del pie se recomienda controlar un balón alto?",opts:["Empeine","Planta o interior","Talón","Rodilla"],ok:1},
-    {q:"¿A qué pie se le debe pasar la pelota al compañero?",opts:["Al pie malo","Al que esté más cerca","Al pie bueno","Al que pida de talón"],ok:2},
-    {q:"¿A qué poste se recomienda apuntar al disparar?",opts:["Al que esté más lejos","Al palo cercano","Al árbitro","Al cielo"],ok:1},
-    {q:"¿Cómo se debe marcar al rival?",opts:["Por detrás","De frente","De costado, brazo extendido, sin derribar","Corriendo tras él"],ok:2},
-    {q:"¿Qué se debe hacer antes de pedir la pelota?",opts:["Quedarse quieto","Gritar más fuerte","Desmarcarse con dos pasos y señalar","Esperar al árbitro"],ok:2},
-    {q:"¿Qué error evita el equipo que quiere mantener el orden?",opts:["Salir por el centro del área","Pase largo","Tiro al arco","Corners"],ok:0}
-  ];
-
-  let idx = 0, aciertos = 0, timer = null;
-
-  function mostrarPregunta(){
-    const p = preguntas[idx];
-    let html = `<div class="timer-bar"><div class="timer-fill" style="width:100%"></div></div>
-                <b>Pregunta ${idx+1}/10</b> – ${p.q}<br><small id="countdown">${TIME_PER_Q}s</small><div class="mt-2">`;
-    p.opts.forEach((o,k)=> html += `
-      <div class="form-check">
-        <input class="form-check-input" type="radio" name="opt" id="o${k}" value="${k}">
-        <label class="form-check-label" for="o${k}" style="color:#fff;">${o}</label>
-      </div>`);
-    html += `</div><button class="btn btn-primary btn-sm mt-2" onclick="corregir()">Siguiente</button>`;
-    document.getElementById('testArea').innerHTML = html;
-
-    let seg = TIME_PER_Q;
-    const bar = document.querySelector('.timer-fill');
-    const txt = document.getElementById('countdown');
-    timer = setInterval(()=>{
-      seg--;
-      bar.style.width = (seg/TIME_PER_Q*100) + '%';
-      txt.textContent = seg + 's';
-      if(seg === 0){ clearInterval(timer); timeOut(); }
-    },1000);
-  }
-
-  function timeOut(){
-    alert("Se acabó el tiempo. Volvé a intentarlo.");
-    volverAlModal();
-  }
-
-  mostrarPregunta();
-}
-
-</script>
-</body>
-</html>
-"""
 # ---------- LECCIÓN 1 (texto + test) ----------
 LECCION_1_HTML = """
 <!doctype html>
@@ -1189,7 +959,6 @@ def ver_lecciones():
         html += f"<tr><td>{row[0]}</td><td>{row[1]}</td><td>{row[2]}</td><td>{row[3]}/10</td></tr>"
     html += "</table>"
     return html
-
 # ---------- GUARDAR APROBACIÓN (Aiven) ----------
 @app.route("/guardar_aprobacion", methods=["POST"])
 def guardar_aprobacion():
@@ -1198,38 +967,27 @@ def guardar_aprobacion():
     leccion_numero = data.get("leccion_numero")
     nota = data.get("nota")
 
-    conn = psycopg2.connect(DATABASE_URL)  # esto apunta a Aiven
-    cursor = conn.cursor()
-    cursor.execute(
-        "INSERT INTO lecciones_aprobadas (jugador_id, leccion_numero, nota) VALUES (%s, %s, %s)",
-        (jugador_id, leccion_numero, nota)
-    )
-    conn.commit()
-    conn.close()
-    return {"status": "ok"}, 200
-
-# ---------- REGISTRO RÁPIDO (crea jugador y devuelve ID) ----------
-@app.route('/api/registro_rapido', methods=['POST'])
-def registro_rapido():
-    from datetime import date
-    data = request.get_json()
-    nombre = data.get('nombre')
-    cedula = data.get('cedula')
-    anio = data.get('anio')
-
-    if not all([nombre, cedula, anio]):
-        return {"error": "Faltan datos"}, 400
-
     conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
-    cursor.execute(
-        "INSERT INTO jugadores (nombre, cedula, anio_nacimiento, posicion, goles, asistencias, fecha_ingreso) VALUES (%s, %s, %s, 'POR', 0, 0, %s) RETURNING id",
-        (nombre, cedula, anio, date.today().isoformat())
-    )
-    jugador_id = cursor.fetchone()[0]
-    conn.commit()
-    conn.close()
-    return {"id": jugador_id, "nombre": nombre}, 201
+    try:
+        cursor.execute(
+            """
+            INSERT INTO lecciones_aprobadas (jugador_id, leccion_numero, nota)
+            VALUES (%s, %s, %s)
+            ON CONFLICT (jugador_id, leccion_numero)
+            DO UPDATE SET nota = EXCLUDED.nota,
+                          fecha_aprobado = NOW()
+            """,
+            (jugador_id, leccion_numero, nota)
+        )
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        return {"status": "error", "msg": str(e)}, 500
+    finally:
+        conn.close()
+
+    return {"status": "ok"}, 200
     
  # ---------- SERVIR CUALQUIER LECCIÓN ----------
 @app.route('/leccion/<int:n>')
@@ -1283,7 +1041,6 @@ def asegurar_columnas():
     conn = psycopg2.connect(DATABASE_URL)
     with conn.cursor() as cur:
         columnas = [
-            ("cedula", "TEXT"),
             ("posicion", "TEXT"),
             ("goles", "INTEGER"),
             ("asistencias", "INTEGER"),
@@ -1305,7 +1062,10 @@ def asegurar_columnas():
                 print(f"✅ Columna '{col}' creada.")
     conn.commit()
     conn.close()
-# Se ejecuta una vez al cargar el módulo (tanto en local como en Render)
+# -------------------------------------------------
+# Ejecutar una sola vez al arrancar la aplicación
+# -------------------------------------------------
+init_db()
 asegurar_columnas()
 
 if __name__ == "__main__":
