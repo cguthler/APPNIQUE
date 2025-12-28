@@ -464,7 +464,7 @@ INDEX_HTML = """
       Niquee Fútbol Club nació en 2017 en Guayaquil con la filosofía de adoración a Dios, juego limpio y trabajo en equipo.
       Participamos en ligas barriales y torneos locales. ¡Buscamos talento honestidad y lealtad!<br>
       Entrenamientos: lun/mié/vie 18:00-20:00 | Cancha: sintéticas fútbol Garzota samanes<br>
-      Redes: <a href="https://www.facebook.com/share/1CWH1PEHMU/  " target="_blank" style="color:#ffff80">Facebook</a>
+      Redes: <a href="https://www.facebook.com/share/1CWH1PEHMU/ " target="_blank" style="color:#ffff80">Facebook</a>
     </p>
   </div>
 
@@ -486,7 +486,7 @@ INDEX_HTML = """
 
   <footer>
     @transguthler&amp;asociados • fonos 593958787986-593992123592<br>
-    cguthler@hotmail.com • <a href="https://www.facebook.com/share/1CWH1PEHMU/  " target="_blank" style="color:#ffff80">fb.me/share/1CWH1PEHMU</a><br>
+    cguthler@hotmail.com • <a href="https://www.facebook.com/share/1CWH1PEHMU/ " target="_blank" style="color:#ffff80">fb.me/share/1CWH1PEHMU</a><br>
     Guayaquil – Ecuador
   </footer>
 
@@ -812,7 +812,7 @@ LECCION_1_HTML = """
   <meta charset="utf-8">
   <title>Lección 1 - Fundamentos y reglas</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css " rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body{background:#1b263b;color:#ffff00;font-family:Segoe UI,system-ui,sans-serif}
     .ventana{background:#1b263b;border-radius:12px;padding:20px;color:#ffff00}
@@ -982,14 +982,15 @@ LECCION_1_HTML = """
 def ver_lecciones():
     conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
+    
+    rows = cursor.fetchall()
+    conn.close()
     cursor.execute("""
         SELECT j.nombre, l.leccion_numero, l.fecha_aprobado, l.nota
         FROM lecciones_aprobadas l
         JOIN jugadores j ON j.id = l.jugador_id
         ORDER BY l.fecha_aprobado DESC
     """)  # ← este """ cierra el bloque
-    rows = cursor.fetchall()
-    conn.close()
     html = "<h2>Lecciones Aprobadas</h2><table border='1' cellpadding='6'><tr><th>Jugador</th><th>Lección</th><th>Fecha</th><th>Nota</th></tr>"
     for row in rows:
         html += f"<tr><td>{row[0]}</td><td>{row[1]}</td><td>{row[2]}</td><td>{row[3]}/10</td></tr>"
