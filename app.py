@@ -982,15 +982,15 @@ LECCION_1_HTML = """
 def ver_lecciones():
     conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
+    
+    rows = cursor.fetchall()
+    conn.close()
     cursor.execute("""
         SELECT j.nombre, l.leccion_numero, l.fecha_aprobado, l.nota
         FROM lecciones_aprobadas l
         JOIN jugadores j ON j.id = l.jugador_id
         ORDER BY l.fecha_aprobado DESC
-    """)
-    rows = cursor.fetchall()
-    conn.close()
-
+    """)  # ← este """ cierra el bloque
     html = "<h2>Lecciones Aprobadas</h2><table border='1' cellpadding='6'><tr><th>Jugador</th><th>Lección</th><th>Fecha</th><th>Nota</th></tr>"
     for row in rows:
         html += f"<tr><td>{row[0]}</td><td>{row[1]}</td><td>{row[2]}</td><td>{row[3]}/10</td></tr>"
@@ -1099,6 +1099,7 @@ def asegurar_columnas():
                 print(f"✅ Columna '{col}' creada.")
     conn.commit()
     conn.close()
+
 # -------------------------------------------------
 # Ejecutar una sola vez al arrancar la aplicación
 # -------------------------------------------------
