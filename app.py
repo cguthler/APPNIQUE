@@ -367,6 +367,41 @@ INDEX_HTML = """
   padding: 20px;
   box-shadow: 0 4px 12px rgba(0,0,0,.25);
 }
+/* Botón "Leído → Comenzar test" siempre visible */
+.btn-leer {
+  position: sticky;
+  bottom: 20px;
+  margin: 20px auto;
+  display: block;
+  width: fit-content;
+  z-index: 10;          /* por si hay otros elementos encima */
+}
+/* === MODAL LECCIÓN: ANCHO + SCROLL + BOTÓN FIJO === */
+#moduloModal {
+  max-width: 90vw !important;
+  width: 900px !important;
+  max-height: 90vh !important;
+  overflow-y: auto !important;   /* scroll vertical */
+  padding: 25px;
+  box-sizing: border-box;
+}
+
+/* Contenedor interno para que el texto no toque los bordes */
+#moduloModal .ventana {
+  max-height: none;              /* quitamos límite heredado */
+  overflow-y: visible;           /* el scroll lo maneja el modal */
+  padding: 20px;
+}
+
+/* Botón sticky al final */
+.btn-leer {
+  position: sticky;
+  bottom: 20px;
+  margin: 20px auto 0;
+  display: block;
+  width: fit-content;
+  z-index: 10;
+}
   </style>
 </head>
 <body>
