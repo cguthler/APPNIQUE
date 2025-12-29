@@ -850,6 +850,7 @@ LECCION_1_HTML = """
 
         Cuando el árbitro pita el final, el equipo que supo conjugar reglas, fundamentos y pequeñas dosis de profesionalismo se lleva los tres puntos y la satisfacción de haber jugado al fútbol sin sobresaltos ni reclamos.
       </p>
+      """
     </div>
 
     <!-- Botón para desplegar el test -->
