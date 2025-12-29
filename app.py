@@ -428,14 +428,7 @@ INDEX_HTML = """
   <input type="text" id="cedulaTest" placeholder="Ingresa tu cédula" maxlength="20" style="padding:6px;width:200px;">
   <button class="btn btn-sm btn-success" onclick="buscarYAbrirTest()">Modulos</button>
 </div>
-     <!-- Pide cédula antes de abrir el test -->
-<div style="margin-bottom:10px;">
-  <input type="text" id="cedulaTest" placeholder="Ingresa tu cédula" maxlength="20" style="padding:6px;width:200px;">
-  
-</div>
-    </div>
-  </div>
-
+    
   <!-- VENTANA 3: Plantilla -->
   <div class="ventana">
     <h2>Plantilla de Jugadores</h2>
@@ -1063,27 +1056,29 @@ LECCION_1_HTML = """
     mostrarPregunta();
   }
 </script> 
-</script>
 
 # ---------- VERIFICAR APROBACIONES ----------
 @app.route("/ver_lecciones")
 def ver_lecciones():
     conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
-    
-    rows = cursor.fetchall()
-    conn.close()
+
     cursor.execute("""
         SELECT j.nombre, l.leccion_numero, l.fecha_aprobado, l.nota
         FROM lecciones_aprobadas l
         JOIN jugadores j ON j.id = l.jugador_id
         ORDER BY l.fecha_aprobado DESC
-    """)  # ← este """ cierra el bloque
-    html = "<h2>Lecciones Aprobadas</h2><table border='1' cellpadding='6'><tr><th>Jugador</th><th>Lección</th><th>Fecha</th><th>Nota</th></tr>"
+    """)
+    rows = cursor.fetchall()
+    conn.close()
+
+    html = "<h2>Lecciones Aprobadas</h2><table border='1' cellpadding='6'>"
+    html += "<tr><th>Jugador</th><th>Lección</th><th>Fecha</th><th>Nota</th></tr>"
     for row in rows:
         html += f"<tr><td>{row[0]}</td><td>{row[1]}</td><td>{row[2]}</td><td>{row[3]}/10</td></tr>"
     html += "</table>"
     return html
+    
 # ---------- GUARDAR APROBACIÓN (Aiven) ----------
 @app.route("/guardar_aprobacion", methods=["POST"])
 def guardar_aprobacion():
