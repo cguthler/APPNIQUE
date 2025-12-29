@@ -1058,11 +1058,11 @@ def ver_lecciones():
     cursor = conn.cursor()
 
     cursor.execute("""
-        SELECT j.nombre, l.leccion_numero, l.fecha_aprobado, l.nota
-        FROM lecciones_aprobadas l
-        JOIN jugadores j ON j.id = l.jugador_id
-        ORDER BY l.fecha_aprobado DESC
-    """)
+SELECT j.nombre, l.leccion_numero, l.fecha_aprobado, l.nota
+FROM lecciones_aprobadas l
+JOIN jugadores j ON j.id = l.jugador_id
+ORDER BY l.fecha_aprobado DESC
+""")
     rows = cursor.fetchall()
     conn.close()
 
