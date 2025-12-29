@@ -275,7 +275,7 @@ INDEX_HTML = """
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <title>&#9917; NIQU&#201;E FUTBOL CLUB</title>
+  <title>⚽ NIQUÉE FÚTBOL CLUB</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
@@ -287,12 +287,7 @@ INDEX_HTML = """
       font-size:16px;
       line-height:1.5;
     }
-    h1 {
-      text-align:center;
-      padding:20px 0 12px;
-      font-size:2rem;
-      color:#00ff00;
-    } 
+    h1{text-align:center;padding:20px 0 12px;font-size:2rem;color:#00ff00}
     .ventana{
       background:#1b263b;
       border-radius:12px;
@@ -301,10 +296,7 @@ INDEX_HTML = """
       max-width:1000px;
       color:#ffff00;
     }
-    .ventana h2{
-      text-align:center;
-      margin-bottom:15px;
-    }
+    .ventana h2{text-align:center;margin-bottom:15px}
     .galeria{
       display:grid;
       grid-template-columns:repeat(4,1fr);
@@ -321,6 +313,7 @@ INDEX_HTML = """
       justify-content:center;
       gap:15px;
       margin-bottom:10px;
+      flex-wrap:wrap;
     }
     .btn{
       background:#415a77;
@@ -360,55 +353,22 @@ INDEX_HTML = """
     @media(max-width:900px){
       .galeria{grid-template-columns:repeat(2,1fr)}
     }
-    .modulo-lecciones{
-  background: #f5f5f5; /* fondo claro */
-  color: #1b263b;      /* texto oscuro que resalta */
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 4px 12px rgba(0,0,0,.25);
-}
-/* Botón "Leído → Comenzar test" siempre visible */
-.btn-leer {
-  position: sticky;
-  bottom: 20px;
-  margin: 20px auto;
-  display: block;
-  width: fit-content;
-  z-index: 10;          /* por si hay otros elementos encima */
-}
-/* === MODAL LECCIÓN: ANCHO + SCROLL + BOTÓN FIJO === */
-#moduloModal {
-  max-width: 90vw !important;
-  width: 900px !important;
-  max-height: 90vh !important;
-  overflow-y: auto !important;   /* scroll vertical */
-  padding: 25px;
-  box-sizing: border-box;
-}
-
-/* Contenedor interno para que el texto no toque los bordes */
-#moduloModal .ventana {
-  max-height: none;              /* quitamos límite heredado */
-  overflow-y: visible;           /* el scroll lo maneja el modal */
-  padding: 20px;
-}
-
-/* Botón sticky al final */
-.btn-leer {
-  position: sticky;
-  bottom: 20px;
-  margin: 20px auto 0;
-  display: block;
-  width: fit-content;
-  z-index: 10;
-}
+    .modal{
+      display:none;
+      position:fixed;
+      top:10%;left:50%;
+      transform:translateX(-50%);
+      z-index:9999;
+      max-width:480px;
+      width:90%;
+    }
   </style>
 </head>
 <body>
 
   <!-- VENTANA 1: Título + Galería -->
   <div class="ventana">
-    <h1>&#9917; NIQUEE FÚTBOL CLUB</h1>
+    <h1>⚽ NIQUÉE FÚTBOL CLUB</h1>
     <div class="galeria">
       <img src="{{ url_for('static', filename='uploads/niqueeblanco.jpg') }}" alt="Equipo 1">
       <img src="{{ url_for('static', filename='uploads/logo.png') }}" alt="Equipo 2">
@@ -417,19 +377,22 @@ INDEX_HTML = """
     </div>
   </div>
 
-  <!-- VENTANA 2: Botones -->
+  <!-- VENTANA 2: Botones principales -->
   <div class="ventana">
     <div class="botones">
       <a href="/admin" class="btn">Panel Admin</a>
       <button class="btn" onclick="document.getElementById('infoModal').style.display='block'">+ Info</button>
       <button class="btn" onclick="pedirClavePDF()">Cargar PDF</button>
       <button class="btn" onclick="abrirModal()">Formulario</button>
-      <div style="margin-top:10px;">
-  <input type="text" id="cedulaTest" placeholder="Ingresa tu cédula" maxlength="20" style="padding:6px;width:200px;">
-  <button class="btn btn-sm btn-success" onclick="buscarYAbrirTest()">Modulos</button>
-</div>
-    
-  <!-- VENTANA 3: Plantilla -->
+    </div>
+    <!-- Entrada para módulos -->
+    <div style="margin-top:15px;text-align:center">
+      <input type="text" id="cedulaTest" placeholder="Ingresa tu cédula" maxlength="20" style="padding:6px;width:200px;">
+      <button class="btn btn-sm btn-success" onclick="buscarYAbrirTest()">Módulos</button>
+    </div>
+  </div>
+
+  <!-- VENTANA 3: Plantilla de Jugadores -->
   <div class="ventana">
     <h2>Plantilla de Jugadores</h2>
     {% for j in jugadores %}
@@ -440,7 +403,7 @@ INDEX_HTML = """
           <span>{{ j[2]|e }} • {{ j[3]|e }}</span>
           <span>G:{{ j[4] }} • A:{{ j[5] }}</span>
           {% if j[7] %}
-            <a href="{{ j[7] }}" download="{{ j[1] | replace(' ', '_') }}_acta.pdf" style="color:#ffff80;font-size:13px;">&#128196; Descargar PDF</a>
+            <a href="{{ j[7] }}" download="{{ j[1] | replace(' ', '_') }}_acta.pdf" style="color:#ffff80;font-size:13px;">📄 Descargar PDF</a>
           {% else %}
             <span style="font-size:12px;color:#aaa;">Sin PDF</span>
           {% endif %}
@@ -449,20 +412,22 @@ INDEX_HTML = """
     {% endfor %}
   </div>
 
-  <!-- MODALES -->
-  <div id="infoModal" class="ventana" style="display:none;position:fixed;top:20%;left:50%;transform:translateX(-50%);z-index:999;">
-    <span style="float:right;cursor:pointer;" onclick="document.getElementById('infoModal').style.display='none'">&times;</span>
+  <!-- ========== MODALES (fuera del flujo normal) ========== -->
+  <!-- Modal Info -->
+  <div id="infoModal" class="ventana modal">
+    <span style="float:right;cursor:pointer;" onclick="this.parentElement.style.display='none'">&times;</span>
     <h3>Información del Club</h3>
     <p>
       Niquee Fútbol Club nació en 2017 en Guayaquil con la filosofía de adoración a Dios, juego limpio y trabajo en equipo.
-      Participamos en ligas barriales y torneos locales. ¡Buscamos talento honestidad y lealtad!<br>
+      Participamos en ligas barriales y torneos locales. ¡Buscamos talento, honestidad y lealtad!<br>
       Entrenamientos: lun/mié/vie 18:00-20:00 | Cancha: sintéticas fútbol Garzota samanes<br>
-      Redes: <a href="https://www.facebook.com/share/1CWH1PEHMU/ " target="_blank" style="color:#ffff80">Facebook</a>
+      Redes: <a href="https://www.facebook.com/share/1CWH1PEHMU/" target="_blank" style="color:#ffff80">Facebook</a>
     </p>
   </div>
 
-  <div id="pdfModal" class="ventana" style="display:none;position:fixed;top:20%;left:50%;transform:translateX(-50%);z-index:999;">
-    <span style="float:right;cursor:pointer;" onclick="document.getElementById('pdfModal').style.display='none'">&times;</span>
+  <!-- Modal PDF -->
+  <div id="pdfModal" class="ventana modal">
+    <span style="float:right;cursor:pointer;" onclick="this.parentElement.style.display='none'">&times;</span>
     <h3>Subir PDF de jugador</h3>
     <form id="pdfForm" enctype="multipart/form-data">
       <label>Seleccione jugador:</label>
@@ -477,9 +442,38 @@ INDEX_HTML = """
     </form>
   </div>
 
+  <!-- Modal Inscripción -->
+  <div id="modalInscripcion" class="ventana modal">
+    <span style="float:right;cursor:pointer;" onclick="cerrarModal()">&times;</span>
+    <h3>Formulario de Inscripción</h3>
+    <form id="formInscripcion" onsubmit="guardarInscripcion(event)">
+      <label>Nombres completos:</label>
+      <input type="text" id="nombres" list="listaJugadores" placeholder="Escribe para ver jugadores" required autocomplete="off">
+      <label>Cédula de ciudadanía:</label>
+      <input type="text" id="cedula" pattern="[0-9]+" maxlength="20" placeholder="Ingrese su cédula" required>
+      <datalist id="listaJugadores"></datalist>
+      <label>Año de nacimiento:</label>
+      <input type="number" id="anio" min="1900" max="2100" required>
+      <label>Torneo:</label>
+      <select id="torneo" required>
+        <option value="">-- Seleccione --</option>
+        <option>Liga Futbol Fest</option>
+        <option>Liga Internacional World Cup 2026</option>
+        <option>Liga Samanes</option>
+        <option>Liga Miraflores</option>
+        <option>Liga Mucho Lote</option>
+        <option>Duran Amateur League</option>
+        <option>Otros</option>
+      </select>
+      <button type="submit" class="btn" style="width:100%;margin-top:15px;">Registrar</button>
+    </form>
+  </div>
+
+  <!-- ========== FOOTER ========== -->
   <footer>
-    @transguthler&amp;asociados • fonos 593958787986-593992123592<br>
-    cguthler@hotmail.com • <a href="https://www.facebook.com/share/1CWH1PEHMU/ " target="_blank" style="color:#ffff80">fb.me/share/1CWH1PEHMU</a><br>
+    @transguthler&asociados • fonos 593-958787986 / 593-992123592<br>
+    cguthler@hotmail.com •
+    <a href="https://www.facebook.com/share/1CWH1PEHMU/" target="_blank" style="color:#ffff80">Facebook</a><br>
     Guayaquil – Ecuador
   </footer>
 
