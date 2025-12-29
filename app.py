@@ -861,8 +861,7 @@ LECCION_1_HTML = """
     <div id="testArea"></div>
     <div id="resultArea" class="mt-3"></div>
   </div>
-
-  <script>
+  
     function mostrarTest() {
       // Ocultamos el botón para que no lo aprieten dos veces
       document.querySelector('.btn-leer').style.display = 'none';
