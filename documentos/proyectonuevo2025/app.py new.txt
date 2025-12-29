@@ -1,0 +1,379 @@
+# ---------------  app.py (Flask + Admin + PDF) ---------------
+from flask import (
+    Flask, render_template_string, request, redirect, url_for,
+    send_from_directory, session, jsonify
+)
+import sqlite3, os, psycopg2
+from psycopg2 import sql
+from werkzeug.utils import secure_filename
+from datetime import date, datetime
+from dotenv import load_dotenv
+import cloudinary
+from cloudinary.uploader import upload as cld_upload
+
+load_dotenv()
+DATABASE_URL = os.getenv("DATABASE_URL")
+RENDER       = os.getenv("RENDER") == "true"
+
+if RENDER:
+    cloudinary.config(
+        cloud_name = os.getenv("CLOUDINARY_CLOUD_NAME"),
+        api_key    = os.getenv("CLOUDINARY_API_KEY"),
+        api_secret = os.getenv("CLOUDINARY_API_SECRET")
+    )
+
+# ---------- CONFIG ----------
+ALLOWED_IMG = {'png', 'jpg', 'jpeg', 'gif'}
+ADMIN_PASSWORD = "jeremias123"
+PDF_PASSWORD   = "niquee123"
+FORM_PASSWORD  = "guthler123"
+
+UPLOAD_IMG  = os.path.join(os.getcwd(), "static", "uploads")
+UPLOAD_DOCS = os.path.join(UPLOAD_IMG, "docs")
+os.makedirs(UPLOAD_IMG,  exist_ok=True)
+os.makedirs(UPLOAD_DOCS, exist_ok=True)
+
+app = Flask(__name__)
+app.secret_key = "clave_secreta_niquee"
+
+# ---------- HELPERS ----------
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_IMG
+
+# ---------- INIT DB ----------
+def init_db():
+    conn = psycopg2.connect(DATABASE_URL)
+    with conn.cursor() as cur:
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS jugadores (
+                id SERIAL PRIMARY KEY,
+                nombre TEXT,
+                cedula TEXT UNIQUE,
+                anio_nacimiento INTEGER,
+                posicion TEXT,
+                goles INTEGER,
+                asistencias INTEGER,
+                imagen TEXT,
+                fecha_ingreso TEXT,
+                pdf_url TEXT
+            )
+        """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS inscripciones (
+                id SERIAL PRIMARY KEY,
+                jugador_id INTEGER REFERENCES jugadores(id),
+                cedula TEXT,
+                anio_nacimiento INTEGER,
+                torneo TEXT,
+                estado TEXT DEFAULT 'PENDIENTE',
+                fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        cur.execute("""
+            ALTER TABLE jugadores
+            ADD COLUMN IF NOT EXISTS pdf_url TEXT
+        """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS lecciones_aprobadas (
+                id SERIAL PRIMARY KEY,
+                jugador_id INTEGER REFERENCES jugadores(id) ON DELETE CASCADE,
+                leccion_numero INTEGER CHECK (leccion_numero BETWEEN 1 AND 10),
+                nota INTEGER CHECK (nota BETWEEN 0 AND 10),
+                fecha_aprobado TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE (jugador_id, leccion_numero)
+            )
+        """)
+    conn.commit()
+    conn.close()
+
+def asegurar_columnas():
+    conn = psycopg2.connect(DATABASE_URL)
+    with conn.cursor() as cur:
+        columnas = [
+            ("posicion", "TEXT"),
+            ("goles", "INTEGER"),
+            ("asistencias", "INTEGER"),
+            ("imagen", "TEXT"),
+            ("fecha_ingreso", "TEXT"),
+            ("pdf_url", "TEXT")
+        ]
+        for col, tipo in columnas:
+            cur.execute(
+                "SELECT 1 FROM information_schema.columns "
+                "WHERE table_name='jugadores' AND column_name=%s",
+                (col,)
+            )
+            if not cur.fetchone():
+                cur.execute(
+                    sql.SQL("ALTER TABLE jugadores ADD COLUMN {} {}")
+                    .format(sql.Identifier(col), sql.SQL(tipo))
+                )
+    conn.commit()
+    conn.close()
+
+# ---------- API ----------
+@app.route('/api/registro_rapido', methods=['POST'])
+def api_registro_rapido():
+    data = request.get_json(force=True)
+    nombre = data.get('nombre')
+    cedula = data.get('cedula')
+    anio   = data.get('anio')
+    if not all([nombre, cedula, anio]):
+        return jsonify({"error": "Faltan campos"}), 400
+
+    conn = psycopg2.connect(DATABASE_URL)
+    cur = conn.cursor()
+    try:
+        cur.execute(
+            "INSERT INTO jugadores (nombre, cedula, anio_nacimiento, posicion, goles, asistencias, fecha_ingreso) "
+            "VALUES (%s, %s, %s, 'POR', 0, 0, %s) RETURNING id",
+            (nombre, cedula, anio, date.today().isoformat())
+        )
+        nuevo_id = cur.fetchone()[0]
+        conn.commit()
+        return jsonify({"id": nuevo_id, "nombre": nombre}), 201
+    except psycopg2.IntegrityError:
+        conn.rollback()
+        return jsonify({"error": "Cédula ya registrada"}), 409
+    finally:
+        conn.close()
+
+@app.route('/api/jugadores')
+def api_jugadores():
+    conn = psycopg2.connect(DATABASE_URL)
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, nombre, cedula FROM jugadores ORDER BY nombre")
+    rows = cursor.fetchall()
+    conn.close()
+    return {"jugadores": [{"id": r[0], "nombre": r[1], "cedula": r[2]} for r in rows]}
+
+@app.route('/api/inscripciones', methods=['POST'])
+def api_inscripciones():
+    data = request.get_json()
+    jugador_id = data.get("jugador_id")
+    cedula     = data.get("cedula")
+    anio       = data.get("anio")
+    torneo     = data.get("torneo")
+    if not all([jugador_id, cedula, anio, torneo]):
+        return {"message": "Faltan datos"}, 400
+
+    conn = psycopg2.connect(DATABASE_URL)
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO inscripciones (jugador_id, cedula, anio_nacimiento, torneo, estado) "
+        "VALUES (%s, %s, %s, %s, 'PENDIENTE')",
+        (jugador_id, cedula, anio, torneo)
+    )
+    conn.commit()
+    conn.close()
+    return {"message": "Inscripción registrada. Realiza el pago para confirmar participación."}
+
+# ---------- ADMIN ----------
+@app.route("/admin", methods=["GET", "POST"])
+def admin_login():
+    if request.method == "POST":
+        if request.form["password"] == ADMIN_PASSWORD:
+            session["admin"] = True
+            return redirect(url_for("admin_panel"))
+        else:
+            return "❌ Contraseña incorrecta"
+    return render_template_string(ADMIN_LOGIN_HTML)
+
+@app.route("/admin/panel")
+def admin_panel():
+    if not session.get("admin"):
+        return redirect(url_for("admin_login"))
+    conn = psycopg2.connect(DATABASE_URL)
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT id, nombre, anio_nacimiento, posicion, goles, asistencias, imagen, pdf_url "
+        "FROM jugadores ORDER BY id DESC"
+    )
+    rows = cursor.fetchall()
+    conn.close()
+    return render_template_string(ADMIN_PANEL_HTML, jugadores=rows)
+
+@app.route("/borrar/<int:jugador_id>")
+def borrar(jugador_id):
+    if not session.get("admin"):
+        return redirect(url_for("admin_login"))
+    conn = psycopg2.connect(DATABASE_URL)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM jugadores WHERE id = %s", (jugador_id,))
+    conn.commit()
+    conn.close()
+    return redirect(url_for("admin_panel"))
+
+# ---------- UPLOADS ----------
+@app.route("/subir_pdf/<int:jugador_id>", methods=["POST"])
+def subir_pdf(jugador_id):
+    if not session.get("admin"):
+        return "❌ Acceso denegado", 403
+    file = request.files.get("pdf")
+    if not file or file.filename == "":
+        return "Archivo no válido", 400
+    if not file.filename.lower().endswith(".pdf"):
+        return "Solo se permite PDF", 400
+    if request.content_length and request.content_length > 10 * 1024 * 1024:
+        return "PDF demasiado grande (máx 10 MB)", 413
+
+    resultado = cld_upload(
+        file,
+        resource_type='raw',
+        folder=f"jugadores/{jugador_id}",
+        public_id=f"doc-{int(datetime.now().timestamp())}"
+    )
+    pdf_url = resultado['secure_url']
+
+    conn = psycopg2.connect(DATABASE_URL)
+    cursor = conn.cursor()
+    cursor.execute(
+        "UPDATE jugadores SET pdf_url = %s WHERE id = %s",
+        (pdf_url, jugador_id)
+    )
+    conn.commit()
+    conn.close()
+    return redirect(url_for("index"))
+
+@app.route("/uploads/<path:name>")
+def serve_img(name):
+    if RENDER:
+        return redirect(name)
+    return send_from_directory(UPLOAD_IMG, name)
+
+@app.route('/docs/<name>')
+def serve_pdf(name):
+    if not session.get("admin"):
+        return "❌ Acceso denegado", 403
+    safe_name = secure_filename(name)
+    if RENDER:
+        return redirect(name)
+    return send_from_directory(UPLOAD_DOCS, safe_name)
+
+# ---------- APROBACIONES ----------
+@app.route("/guardar_aprobacion_pg", methods=["POST"])
+def guardar_aprobacion_pg():
+    data = request.get_json()
+    jugador_id     = data.get("jugador_id")
+    leccion_numero = data.get("leccion_numero")
+    nota           = data.get("nota")
+
+    conn = psycopg2.connect(DATABASE_URL)
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            """
+            INSERT INTO lecciones_aprobadas (jugador_id, leccion_numero, nota)
+            VALUES (%s, %s, %s)
+            ON CONFLICT (jugador_id, leccion_numero)
+            DO UPDATE SET nota = EXCLUDED.nota,
+                          fecha_aprobado = NOW()
+            """,
+            (jugador_id, leccion_numero, nota)
+        )
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        return {"status": "error", "msg": str(e)}, 500
+    finally:
+        conn.close()
+    return {"status": "ok"}, 200
+
+# ---------- LECCIONES ----------
+@app.route('/leccion/<int:n>')
+def leccion(n):
+    try:
+        with open(f'templates/leccion{n}.html', 'r', encoding='utf-8') as f:
+            return render_template_string(f.read())
+    except FileNotFoundError:
+        return "Lección no encontrada", 404
+
+# ---------- VER DATOS ----------
+@app.route("/ver_datos")
+def ver_datos():
+    if not session.get("admin"):
+        return redirect(url_for("admin_login"))
+    conn = psycopg2.connect(DATABASE_URL)
+    cur = conn.cursor()
+    cur.execute("SELECT id, nombre, anio_nacimiento, posicion, imagen FROM jugadores ORDER BY id DESC LIMIT 10")
+    jugadores = cur.fetchall()
+    cur.execute("""SELECT i.id, j.nombre, i.cedula, i.torneo, i.estado, i.fecha
+                   FROM inscripciones i JOIN jugadores j ON j.id = i.jugador_id
+                   ORDER BY i.fecha DESC LIMIT 10""")
+    inscripciones = cur.fetchall()
+    cur.execute("""SELECT j.nombre, l.leccion_numero, l.nota, l.fecha_aprobado
+                   FROM lecciones_aprobadas l JOIN jugadores j ON j.id = l.jugador_id
+                   ORDER BY l.fecha_aprobado DESC LIMIT 10""")
+    lecciones = cur.fetchall()
+    conn.close()
+
+    html = "<h2>Jugadores (top 10)</h2><ul>"
+    for j in jugadores:
+        html += f"<li>ID {j[0]} – {j[1]} – Año {j[2]} – Pos {j[3]} – Img: {j[4] or 'Sin imagen'}</li>"
+    html += "</ul><h2>Inscripciones (top 10)</h2><ul>"
+    for i in inscripciones:
+        html += f"<li>ID {i[0]} – {i[1]} – CI {i[2]} – Torneo {i[3]} – Estado {i[4]} – {i[5]}</li>"
+    html += "</ul><h2>Lecciones aprobadas (top 10)</h2><ul>"
+    for l in lecciones:
+        html += f"<li>{l[0]} – Lección {l[1]} – Nota {l[2]}/10 – {l[3]}</li>"
+    html += "</ul><a href='/admin/panel'>← Volver</a>"
+    return html
+
+# ---------- INDEX ----------
+@app.route("/")
+def index():
+    conn = psycopg2.connect(DATABASE_URL)
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT id, nombre, cedula, anio_nacimiento, posicion, goles, asistencias, imagen, pdf_url "
+        "FROM jugadores ORDER BY id DESC"
+    )
+    jugadores = cursor.fetchall()
+    conn.close()
+    return render_template_string(INDEX_HTML, jugadores=jugadores,
+                                  PDF_PASSWORD=PDF_PASSWORD,
+                                  FORM_PASSWORD=FORM_PASSWORD)
+
+# ---------- PLANTILLAS (cadenas cortas) ----------
+ADMIN_LOGIN_HTML = """
+<form method="post" style="max-width:300px;margin:auto">
+  <h2>Admin Login</h2>
+  <input type="password" name="password" placeholder="Contraseña" style="width:100%;padding:8px">
+  <button type="submit" style="width:100%;margin-top:10px">Entrar</button>
+</form>
+"""
+
+ADMIN_PANEL_HTML = """
+<h2>Panel Admin</h2>
+<a href="/">Ver vista pública</a>
+<form method="post" action="/guardar" enctype="multipart/form-data">
+  <label>Nombre completo</label><input name="nombre" required>
+  <label>Cédula:</label>
+  <input type="text" name="cedula" pattern="[0-9]+" maxlength="20" placeholder="Cédula del jugador" required>
+  <label>Año de nacimiento</label><input type="number" name="anio_nacimiento" required>
+  <label>Posición</label><input name="posicion" required>
+  <label>Goles</label><input type="number" name="goles" required>
+  <label>Asistencias</label><input type="number" name="asistencias" required>
+  <label>Foto</label><input type="file" name="imagen" accept="image/*">
+  <button type="submit">Guardar Jugador</button>
+</form>
+<hr>
+{% for j in jugadores %}
+<div>
+  <strong>{{ j[1] }}</strong> |
+  <span>C.I. {{ j[2] }}</span> |
+  <a href="{{ j[7] }}" target="_blank">📄 Ver PDF</a>
+  <a href="/borrar/{{ j[0] }}" onclick="return confirm('¿Borrar?')">🗑 Borrar</a>
+</div>
+{% endfor %}
+"""
+
+INDEX_HTML = """..."""          # cadena muy larga: usar la original
+LECCION_1_HTML = """..."""      # cadena muy larga: usar la original
+
+# ---------- START ----------
+init_db()
+asegurar_columnas()
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
