@@ -275,7 +275,7 @@ INDEX_HTML = """
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <title>&#9917; NIQU&#201;E FUTBOL CLUB</title>
+  <title>⚽ NIQUÉE FÚTBOL CLUB</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
@@ -287,12 +287,7 @@ INDEX_HTML = """
       font-size:16px;
       line-height:1.5;
     }
-    h1 {
-      text-align:center;
-      padding:20px 0 12px;
-      font-size:2rem;
-      color:#00ff00;
-    } 
+    h1{text-align:center;padding:20px 0 12px;font-size:2rem;color:#00ff00}
     .ventana{
       background:#1b263b;
       border-radius:12px;
@@ -301,10 +296,7 @@ INDEX_HTML = """
       max-width:1000px;
       color:#ffff00;
     }
-    .ventana h2{
-      text-align:center;
-      margin-bottom:15px;
-    }
+    .ventana h2{text-align:center;margin-bottom:15px}
     .galeria{
       display:grid;
       grid-template-columns:repeat(4,1fr);
@@ -321,6 +313,7 @@ INDEX_HTML = """
       justify-content:center;
       gap:15px;
       margin-bottom:10px;
+      flex-wrap:wrap;
     }
     .btn{
       background:#415a77;
@@ -360,55 +353,22 @@ INDEX_HTML = """
     @media(max-width:900px){
       .galeria{grid-template-columns:repeat(2,1fr)}
     }
-    .modulo-lecciones{
-  background: #f5f5f5; /* fondo claro */
-  color: #1b263b;      /* texto oscuro que resalta */
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 4px 12px rgba(0,0,0,.25);
-}
-/* Botón "Leído → Comenzar test" siempre visible */
-.btn-leer {
-  position: sticky;
-  bottom: 20px;
-  margin: 20px auto;
-  display: block;
-  width: fit-content;
-  z-index: 10;          /* por si hay otros elementos encima */
-}
-/* === MODAL LECCIÓN: ANCHO + SCROLL + BOTÓN FIJO === */
-#moduloModal {
-  max-width: 90vw !important;
-  width: 900px !important;
-  max-height: 90vh !important;
-  overflow-y: auto !important;   /* scroll vertical */
-  padding: 25px;
-  box-sizing: border-box;
-}
-
-/* Contenedor interno para que el texto no toque los bordes */
-#moduloModal .ventana {
-  max-height: none;              /* quitamos límite heredado */
-  overflow-y: visible;           /* el scroll lo maneja el modal */
-  padding: 20px;
-}
-
-/* Botón sticky al final */
-.btn-leer {
-  position: sticky;
-  bottom: 20px;
-  margin: 20px auto 0;
-  display: block;
-  width: fit-content;
-  z-index: 10;
-}
+    .modal{
+      display:none;
+      position:fixed;
+      top:10%;left:50%;
+      transform:translateX(-50%);
+      z-index:9999;
+      max-width:480px;
+      width:90%;
+    }
   </style>
 </head>
 <body>
 
   <!-- VENTANA 1: Título + Galería -->
   <div class="ventana">
-    <h1>&#9917; NIQUEE FÚTBOL CLUB</h1>
+    <h1>⚽ NIQUÉE FÚTBOL CLUB</h1>
     <div class="galeria">
       <img src="{{ url_for('static', filename='uploads/niqueeblanco.jpg') }}" alt="Equipo 1">
       <img src="{{ url_for('static', filename='uploads/logo.png') }}" alt="Equipo 2">
@@ -417,26 +377,22 @@ INDEX_HTML = """
     </div>
   </div>
 
-  <!-- VENTANA 2: Botones -->
+  <!-- VENTANA 2: Botones principales -->
   <div class="ventana">
     <div class="botones">
       <a href="/admin" class="btn">Panel Admin</a>
       <button class="btn" onclick="document.getElementById('infoModal').style.display='block'">+ Info</button>
       <button class="btn" onclick="pedirClavePDF()">Cargar PDF</button>
       <button class="btn" onclick="abrirModal()">Formulario</button>
-      <div style="margin-top:10px;">
-  <input type="text" id="cedulaTest" placeholder="Ingresa tu cédula" maxlength="20" style="padding:6px;width:200px;">
-  <button class="btn btn-sm btn-success" onclick="buscarYAbrirTest()">Modulos</button>
-</div>
-     <!-- Pide cédula antes de abrir el test -->
-<div style="margin-bottom:10px;">
-  <input type="text" id="cedulaTest" placeholder="Ingresa tu cédula" maxlength="20" style="padding:6px;width:200px;">
-  
-</div>
+    </div>
+    <!-- Entrada para módulos -->
+    <div style="margin-top:15px;text-align:center">
+      <input type="text" id="cedulaTest" placeholder="Ingresa tu cédula" maxlength="20" style="padding:6px;width:200px;">
+      <button class="btn btn-sm btn-success" onclick="buscarYAbrirTest()">Módulos</button>
     </div>
   </div>
 
-  <!-- VENTANA 3: Plantilla -->
+  <!-- VENTANA 3: Plantilla de Jugadores -->
   <div class="ventana">
     <h2>Plantilla de Jugadores</h2>
     {% for j in jugadores %}
@@ -447,7 +403,7 @@ INDEX_HTML = """
           <span>{{ j[2]|e }} • {{ j[3]|e }}</span>
           <span>G:{{ j[4] }} • A:{{ j[5] }}</span>
           {% if j[7] %}
-            <a href="{{ j[7] }}" download="{{ j[1] | replace(' ', '_') }}_acta.pdf" style="color:#ffff80;font-size:13px;">&#128196; Descargar PDF</a>
+            <a href="{{ j[7] }}" download="{{ j[1] | replace(' ', '_') }}_acta.pdf" style="color:#ffff80;font-size:13px;">📄 Descargar PDF</a>
           {% else %}
             <span style="font-size:12px;color:#aaa;">Sin PDF</span>
           {% endif %}
@@ -456,20 +412,22 @@ INDEX_HTML = """
     {% endfor %}
   </div>
 
-  <!-- MODALES -->
-  <div id="infoModal" class="ventana" style="display:none;position:fixed;top:20%;left:50%;transform:translateX(-50%);z-index:999;">
-    <span style="float:right;cursor:pointer;" onclick="document.getElementById('infoModal').style.display='none'">&times;</span>
+  <!-- ========== MODALES (fuera del flujo normal) ========== -->
+  <!-- Modal Info -->
+  <div id="infoModal" class="ventana modal">
+    <span style="float:right;cursor:pointer;" onclick="this.parentElement.style.display='none'">&times;</span>
     <h3>Información del Club</h3>
     <p>
       Niquee Fútbol Club nació en 2017 en Guayaquil con la filosofía de adoración a Dios, juego limpio y trabajo en equipo.
-      Participamos en ligas barriales y torneos locales. ¡Buscamos talento honestidad y lealtad!<br>
+      Participamos en ligas barriales y torneos locales. ¡Buscamos talento, honestidad y lealtad!<br>
       Entrenamientos: lun/mié/vie 18:00-20:00 | Cancha: sintéticas fútbol Garzota samanes<br>
-      Redes: <a href="https://www.facebook.com/share/1CWH1PEHMU/ " target="_blank" style="color:#ffff80">Facebook</a>
+      Redes: <a href="https://www.facebook.com/share/1CWH1PEHMU/" target="_blank" style="color:#ffff80">Facebook</a>
     </p>
   </div>
 
-  <div id="pdfModal" class="ventana" style="display:none;position:fixed;top:20%;left:50%;transform:translateX(-50%);z-index:999;">
-    <span style="float:right;cursor:pointer;" onclick="document.getElementById('pdfModal').style.display='none'">&times;</span>
+  <!-- Modal PDF -->
+  <div id="pdfModal" class="ventana modal">
+    <span style="float:right;cursor:pointer;" onclick="this.parentElement.style.display='none'">&times;</span>
     <h3>Subir PDF de jugador</h3>
     <form id="pdfForm" enctype="multipart/form-data">
       <label>Seleccione jugador:</label>
@@ -484,9 +442,38 @@ INDEX_HTML = """
     </form>
   </div>
 
+  <!-- Modal Inscripción -->
+  <div id="modalInscripcion" class="ventana modal">
+    <span style="float:right;cursor:pointer;" onclick="cerrarModal()">&times;</span>
+    <h3>Formulario de Inscripción</h3>
+    <form id="formInscripcion" onsubmit="guardarInscripcion(event)">
+      <label>Nombres completos:</label>
+      <input type="text" id="nombres" list="listaJugadores" placeholder="Escribe para ver jugadores" required autocomplete="off">
+      <label>Cédula de ciudadanía:</label>
+      <input type="text" id="cedula" pattern="[0-9]+" maxlength="20" placeholder="Ingrese su cédula" required>
+      <datalist id="listaJugadores"></datalist>
+      <label>Año de nacimiento:</label>
+      <input type="number" id="anio" min="1900" max="2100" required>
+      <label>Torneo:</label>
+      <select id="torneo" required>
+        <option value="">-- Seleccione --</option>
+        <option>Liga Futbol Fest</option>
+        <option>Liga Internacional World Cup 2026</option>
+        <option>Liga Samanes</option>
+        <option>Liga Miraflores</option>
+        <option>Liga Mucho Lote</option>
+        <option>Duran Amateur League</option>
+        <option>Otros</option>
+      </select>
+      <button type="submit" class="btn" style="width:100%;margin-top:15px;">Registrar</button>
+    </form>
+  </div>
+
+  <!-- ========== FOOTER ========== -->
   <footer>
-    @transguthler&amp;asociados • fonos 593958787986-593992123592<br>
-    cguthler@hotmail.com • <a href="https://www.facebook.com/share/1CWH1PEHMU/ " target="_blank" style="color:#ffff80">fb.me/share/1CWH1PEHMU</a><br>
+    @transguthler&asociados • fonos 593-958787986 / 593-992123592<br>
+    cguthler@hotmail.com •
+    <a href="https://www.facebook.com/share/1CWH1PEHMU/" target="_blank" style="color:#ffff80">Facebook</a><br>
     Guayaquil – Ecuador
   </footer>
 
@@ -587,11 +574,11 @@ async function finalizar() {
       fetch("/guardar_aprobacion_pg", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        jugador_id: jugadorId,
-        leccion_numero: 1,
-        nota: aciertos
-      })
+    body: JSON.stringify({
+  jugador_id: window.jugadorIdReal || 1,
+  leccion_numero: 1,
+  nota: aciertos
+})  
     });
 
     document.getElementById('resultArea').innerHTML =
@@ -767,7 +754,7 @@ ADMIN_LOGIN_HTML = """
   <input type="password" name="password" placeholder="Contraseña" style="width:100%;padding:8px">
   <button type="submit" style="width:100%;margin-top:10px">Entrar</button>
 </form>
-"""
+"""   #  <-- ESTA LÍNEA FALTABA
 
 ADMIN_PANEL_HTML = """
 <h2>Panel Admin</h2>
@@ -967,35 +954,125 @@ LECCION_1_HTML = """
     mostrarPregunta();
   }       // ← cierra function mostrarTest()
 
+<script>
   function volverAlModal() {
     location.reload();
   }
 
-  // Función que falta
-  function abrirLeccionDentro(num) {
-    window.location.href = '/leccion/' + num;   // o tu lógica de carga
+  function mostrarTest() {
+    // Ocultamos el botón para que no lo aprieten dos veces
+    document.querySelector('.btn-leer').style.display = 'none';
+
+    const TIME_PER_Q = 6;
+    const preguntas = [
+      {q:"¿Quién puede usar las manos dentro del rectángulo?",opts:["Cualquier jugador","Solo el portero","El capitán","Nadie"],ok:1},
+      {q:"¿Qué ocurre si estás más cerca del arco que el último defensa al recibir un pase?",opts:["Gol válido","Falta directa","Offside","Saque de meta"],ok:2},
+      {q:"¿Cómo se debe realizar el saque de banda?",opts:["Con un pie en la línea","Saltando","Dos pies en el campo y pelota detrás de la cabeza","Con la mano"],ok:2},
+      {q:"¿Dónde se cobra un penal?",opts:["Desde el círculo central","Desde el punto penal","Desde la banda","Desde el corner"],ok:1},
+      {q:"¿Con qué parte del pie se recomienda controlar un balón alto?",opts:["Empeine","Planta o interior","Talón","Rodilla"],ok:1},
+      {q:"¿A qué pie se le debe pasar la pelota al compañero?",opts:["Al pie malo","Al que esté más cerca","Al pie bueno","Al que pida de talón"],ok:2},
+      {q:"¿A qué poste se recomienda apuntar al disparar?",opts:["Al que esté más lejos","Al palo cercano","Al árbitro","Al cielo"],ok:1},
+      {q:"¿Cómo se debe marcar al rival?",opts:["Por detrás","De frente","De costado, brazo extendido, sin derribar","Corriendo tras él"],ok:2},
+      {q:"¿Qué se debe hacer antes de pedir la pelota?",opts:["Quedarse quieto","Gritar más fuerte","Desmarcarse con dos pasos y señalar","Esperar al árbitro"],ok:2},
+      {q:"¿Qué error evita el equipo que quiere mantener el orden?",opts:["Salir por el centro del área","Pase largo","Tiro al arco","Corners"],ok:0}
+    ];
+
+    let idx = 0, aciertos = 0, timer = null;
+
+    function mostrarPregunta(){
+      const p = preguntas[idx];
+      let html = `<div class="timer-bar"><div class="timer-fill" style="width:100%"></div></div>
+                  <b>Pregunta ${idx+1}/10</b> – ${p.q}<br><small id="countdown">${TIME_PER_Q}s</small><div class="mt-2">`;
+      p.opts.forEach((o,k)=> html += `
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="opt" id="o${k}" value="${k}">
+          <label class="form-check-label" for="o${k}" style="color:#fff;">${o}</label>
+        </div>`);
+      html += `</div><button class="btn btn-sm btn-primary mt-2" onclick="corregir()">Siguiente</button>`;
+      document.getElementById('testArea').innerHTML = html;
+
+      let seg = TIME_PER_Q;
+      const bar = document.querySelector('.timer-fill');
+      const txt = document.getElementById('countdown');
+      if (timer) clearInterval(timer);
+      timer = setInterval(()=>{
+        seg--;
+        bar.style.width = (seg/TIME_PER_Q*100) + '%';
+        txt.textContent = seg + 's';
+        if(seg === 0){ clearInterval(timer); timeOut(); }
+      },1000);
+    }
+
+    function timeOut(){
+      alert("Se acabó el tiempo. Volvé a intentarlo.");
+      volverAlModal();
+    }
+
+    function corregir(){
+      const sel = document.querySelector('input[name="opt"]:checked');
+      if(!sel){ alert("Elegí una opción."); return; }
+      clearInterval(timer);
+      if(parseInt(sel.value) === preguntas[idx].ok) aciertos++;
+      idx++;
+      if(idx < 10){ mostrarPregunta(); } else { finalizar(); }
+    }
+
+    function finalizar(){
+      const total = preguntas.length;
+      if(aciertos === total){
+        localStorage.setItem("modulo1","aprobado");
+        document.getElementById('resultArea').innerHTML =
+          `<div class="alert alert-success">¡Aprobaste! Estás listo para jugar tu partido.</div>`;
+
+        fetch("/guardar_aprobacion_pg", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({
+            jugador_id: window.jugadorIdReal || 1,
+            leccion_numero: 1,
+            nota: aciertos
+          })
+        });
+
+        const btnSiguiente = document.createElement('button');
+        btnSiguiente.className = 'btn btn-success mt-3';
+        btnSiguiente.textContent = 'Ver siguiente lección →';
+        btnSiguiente.onclick = () => window.location.href = '/leccion/2';
+        document.getElementById('resultArea').appendChild(btnSiguiente);
+
+      } else {
+        document.getElementById('resultArea').innerHTML =
+          `<div class="alert alert-warning">Respondiste ${aciertos}/${total}. Necesitas 10/10 para aprobar.</div>`;
+        setTimeout(()=> volverAlModal(), 3000);
+      }
+    }
+
+    mostrarPregunta();
   }
-</script>
+</script> 
 
 # ---------- VERIFICAR APROBACIONES ----------
 @app.route("/ver_lecciones")
 def ver_lecciones():
     conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
-    
+
+    cursor.execute("""
+SELECT j.nombre, l.leccion_numero, l.fecha_aprobado, l.nota
+FROM lecciones_aprobadas l
+JOIN jugadores j ON j.id = l.jugador_id
+ORDER BY l.fecha_aprobado DESC
+""")
     rows = cursor.fetchall()
     conn.close()
-    cursor.execute("""
-        SELECT j.nombre, l.leccion_numero, l.fecha_aprobado, l.nota
-        FROM lecciones_aprobadas l
-        JOIN jugadores j ON j.id = l.jugador_id
-        ORDER BY l.fecha_aprobado DESC
-    """)  # ← este """ cierra el bloque
-    html = "<h2>Lecciones Aprobadas</h2><table border='1' cellpadding='6'><tr><th>Jugador</th><th>Lección</th><th>Fecha</th><th>Nota</th></tr>"
+
+    html = "<h2>Lecciones Aprobadas</h2><table border='1' cellpadding='6'>"
+    html += "<tr><th>Jugador</th><th>Lección</th><th>Fecha</th><th>Nota</th></tr>"
     for row in rows:
         html += f"<tr><td>{row[0]}</td><td>{row[1]}</td><td>{row[2]}</td><td>{row[3]}/10</td></tr>"
     html += "</table>"
     return html
+    
 # ---------- GUARDAR APROBACIÓN (Aiven) ----------
 @app.route("/guardar_aprobacion", methods=["POST"])
 def guardar_aprobacion():
