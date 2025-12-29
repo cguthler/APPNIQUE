@@ -754,7 +754,7 @@ ADMIN_LOGIN_HTML = """
   <input type="password" name="password" placeholder="Contraseña" style="width:100%;padding:8px">
   <button type="submit" style="width:100%;margin-top:10px">Entrar</button>
 </form>
-"""   #  <-- ESTA LÍNEA FALTABA
+"""  
 
 ADMIN_PANEL_HTML = """
 <h2>Panel Admin</h2>
