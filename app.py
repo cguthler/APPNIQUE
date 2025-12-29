@@ -587,11 +587,11 @@ async function finalizar() {
       fetch("/guardar_aprobacion_pg", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        jugador_id: jugadorId,
-        leccion_numero: 1,
-        nota: aciertos
-      })
+    body: JSON.stringify({
+  jugador_id: window.jugadorIdReal || 1,
+  leccion_numero: 1,
+  nota: aciertos
+})  
     });
 
     document.getElementById('resultArea').innerHTML =
@@ -967,14 +967,102 @@ LECCION_1_HTML = """
     mostrarPregunta();
   }       // ← cierra function mostrarTest()
 
+<script>
   function volverAlModal() {
     location.reload();
   }
 
-  // Función que falta
-  function abrirLeccionDentro(num) {
-    window.location.href = '/leccion/' + num;   // o tu lógica de carga
+  function mostrarTest() {
+    // Ocultamos el botón para que no lo aprieten dos veces
+    document.querySelector('.btn-leer').style.display = 'none';
+
+    const TIME_PER_Q = 6;
+    const preguntas = [
+      {q:"¿Quién puede usar las manos dentro del rectángulo?",opts:["Cualquier jugador","Solo el portero","El capitán","Nadie"],ok:1},
+      {q:"¿Qué ocurre si estás más cerca del arco que el último defensa al recibir un pase?",opts:["Gol válido","Falta directa","Offside","Saque de meta"],ok:2},
+      {q:"¿Cómo se debe realizar el saque de banda?",opts:["Con un pie en la línea","Saltando","Dos pies en el campo y pelota detrás de la cabeza","Con la mano"],ok:2},
+      {q:"¿Dónde se cobra un penal?",opts:["Desde el círculo central","Desde el punto penal","Desde la banda","Desde el corner"],ok:1},
+      {q:"¿Con qué parte del pie se recomienda controlar un balón alto?",opts:["Empeine","Planta o interior","Talón","Rodilla"],ok:1},
+      {q:"¿A qué pie se le debe pasar la pelota al compañero?",opts:["Al pie malo","Al que esté más cerca","Al pie bueno","Al que pida de talón"],ok:2},
+      {q:"¿A qué poste se recomienda apuntar al disparar?",opts:["Al que esté más lejos","Al palo cercano","Al árbitro","Al cielo"],ok:1},
+      {q:"¿Cómo se debe marcar al rival?",opts:["Por detrás","De frente","De costado, brazo extendido, sin derribar","Corriendo tras él"],ok:2},
+      {q:"¿Qué se debe hacer antes de pedir la pelota?",opts:["Quedarse quieto","Gritar más fuerte","Desmarcarse con dos pasos y señalar","Esperar al árbitro"],ok:2},
+      {q:"¿Qué error evita el equipo que quiere mantener el orden?",opts:["Salir por el centro del área","Pase largo","Tiro al arco","Corners"],ok:0}
+    ];
+
+    let idx = 0, aciertos = 0, timer = null;
+
+    function mostrarPregunta(){
+      const p = preguntas[idx];
+      let html = `<div class="timer-bar"><div class="timer-fill" style="width:100%"></div></div>
+                  <b>Pregunta ${idx+1}/10</b> – ${p.q}<br><small id="countdown">${TIME_PER_Q}s</small><div class="mt-2">`;
+      p.opts.forEach((o,k)=> html += `
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="opt" id="o${k}" value="${k}">
+          <label class="form-check-label" for="o${k}" style="color:#fff;">${o}</label>
+        </div>`);
+      html += `</div><button class="btn btn-sm btn-primary mt-2" onclick="corregir()">Siguiente</button>`;
+      document.getElementById('testArea').innerHTML = html;
+
+      let seg = TIME_PER_Q;
+      const bar = document.querySelector('.timer-fill');
+      const txt = document.getElementById('countdown');
+      if (timer) clearInterval(timer);
+      timer = setInterval(()=>{
+        seg--;
+        bar.style.width = (seg/TIME_PER_Q*100) + '%';
+        txt.textContent = seg + 's';
+        if(seg === 0){ clearInterval(timer); timeOut(); }
+      },1000);
+    }
+
+    function timeOut(){
+      alert("Se acabó el tiempo. Volvé a intentarlo.");
+      volverAlModal();
+    }
+
+    function corregir(){
+      const sel = document.querySelector('input[name="opt"]:checked');
+      if(!sel){ alert("Elegí una opción."); return; }
+      clearInterval(timer);
+      if(parseInt(sel.value) === preguntas[idx].ok) aciertos++;
+      idx++;
+      if(idx < 10){ mostrarPregunta(); } else { finalizar(); }
+    }
+
+    function finalizar(){
+      const total = preguntas.length;
+      if(aciertos === total){
+        localStorage.setItem("modulo1","aprobado");
+        document.getElementById('resultArea').innerHTML =
+          `<div class="alert alert-success">¡Aprobaste! Estás listo para jugar tu partido.</div>`;
+
+        fetch("/guardar_aprobacion_pg", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({
+            jugador_id: window.jugadorIdReal || 1,
+            leccion_numero: 1,
+            nota: aciertos
+          })
+        });
+
+        const btnSiguiente = document.createElement('button');
+        btnSiguiente.className = 'btn btn-success mt-3';
+        btnSiguiente.textContent = 'Ver siguiente lección →';
+        btnSiguiente.onclick = () => window.location.href = '/leccion/2';
+        document.getElementById('resultArea').appendChild(btnSiguiente);
+
+      } else {
+        document.getElementById('resultArea').innerHTML =
+          `<div class="alert alert-warning">Respondiste ${aciertos}/${total}. Necesitas 10/10 para aprobar.</div>`;
+        setTimeout(()=> volverAlModal(), 3000);
+      }
+    }
+
+    mostrarPregunta();
   }
+</script> 
 </script>
 
 # ---------- VERIFICAR APROBACIONES ----------
