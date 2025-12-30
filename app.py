@@ -656,16 +656,16 @@ function abrirModulo(){
       <span class="close" onclick="modal.style.display='none'">&times;</span>
       <h3>Lecciones del Módulo</h3>
       <div class="list-group">
-        <a href="/leccion/1" target="_blank" class="list-group-item">Lección 1: Fundamentos y reglas</a>
-        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(2)">Lección 2: Pase interior</a>
-        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(3)">Lección 3: Conducción</a>
-        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(4)">Lección 4: Control orientado</a>
-        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(5)">Lección 5: Presión tras pérdida</a>
-        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(6)">Lección 6: Saque de banda</a>
-        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(7)">Lección 7: Corner a favor</a>
-        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(8)">Lección 8: Corner en contra</a>
-        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(9)">Lección 9: Posesión y descanso</a>
-        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(10)">Lección 10: Fair Play y actitud</a>
+        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(1); return false;">Lección 1: Fundamentos y reglas</a>
+        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(2); return false;">Lección 2: Pase interior</a>
+        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(3); return false;">Lección 3: Conducción</a>
+        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(4); return false;">Lección 4: Control orientado</a>
+        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(5); return false;">Lección 5: Presión tras pérdida</a>
+        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(6); return false;">Lección 6: Saque de banda</a>
+        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(7); return false;">Lección 7: Corner a favor</a>
+        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(8); return false;">Lección 8: Corner en contra</a>
+        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(9); return false;">Lección 9: Posesión y descanso</a>
+        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(10); return false;">Lección 10: Fair Play y actitud</a>
       </div>
       <button class="btn btn-sm btn-secondary mt-3" onclick="location.reload()">Cerrar</button>
     </div>`;
