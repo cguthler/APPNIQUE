@@ -671,13 +671,26 @@ function abrirModulo(){
     </div>`;
   modal.style.display = 'block';
 }
-
 function abrirLeccionDentro(n){
   fetch("/leccion/" + n)
     .then(r => r.text())
     .then(html => {
       const modal = document.getElementById('moduloModal');
       modal.innerHTML = html;
+
+      /* =====  EJECUTAR SCRIPTS INSERTADOS  ===== */
+      modal.querySelectorAll('script').forEach(oldScript => {
+        const newScript = document.createElement('script');
+        Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+        newScript.textContent = oldScript.textContent;
+        oldScript.parentNode.replaceChild(newScript, oldScript);
+      });
+
+      modal.style.display = 'block';
+      modal.scrollTop = 0;
+    });
+}
+
       modal.style.display = 'block';
       modal.scrollTop = 0;
     });
@@ -728,17 +741,6 @@ function abrirModulo(){
 function cerrarModulo(){
   const m = document.getElementById('overlayModulos');
   if(m) m.style.display = 'none';
-}
-
-function abrirLeccionDentro(n){
-  fetch("/leccion/" + n)
-    .then(r => r.text())
-    .then(html => {
-      const modal = document.getElementById('moduloModal');
-      modal.innerHTML = html;
-      modal.style.display = 'block';
-      modal.scrollTop = 0;
-    });
 }
 
 function volverAlModal(){
