@@ -691,16 +691,10 @@ function abrirLeccionDentro(n){
     });
 }
 
-      modal.style.display = 'block';
-      modal.scrollTop = 0;
-    });
-}
-
 function volverAlModal(){
   location.reload();
 }
-</script>
-<script>
+
 /* ---------- MODAL CENTRADO Y SCROLLEABLE ---------- */
 function abrirModulo(){
   /* si ya existe solo lo mostramos */
