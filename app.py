@@ -426,21 +426,23 @@ INDEX_HTML = """
   </div>
 
   <!-- Modal PDF -->
-  <div id="pdfModal" class="ventana modal">
-    <span style="float:right;cursor:pointer;" onclick="this.parentElement.style.display='none'">&times;</span>
-    <h3>Subir PDF de jugador</h3>
-    <form id="pdfForm" enctype="multipart/form-data">
-      <label>Seleccione jugador:</label>
-      <select id="pdfJugador" required>
-        {% for j in jugadores %}
-          <option value="{{ j[0] }}">{{ j[1] }}</option>
-        {% endfor %}
-      </select>
-      <label>Archivo PDF:</label>
-      <input type="file" name="pdf" accept=".pdf" required>
-      <button type="submit" class="btn">Subir PDF</button>
-    </form>
-  </div>
+<div id="pdfModal" class="ventana modal">
+  <span style="float:right;cursor:pointer;" onclick="this.parentElement.style.display='none'">&times;</span>
+  <h3>Subir acta PDF del jugador</h3>
+  <form id="pdfForm" enctype="multipart/form-data">
+    <label>Seleccione jugador:</label>
+    <select id="pdfJugador" required>
+      {% for j in jugadores %}
+        <option value="{{ j[0] }}">{{ j[1] }}</option>
+      {% endfor %}
+    </select>
+
+    <label>Archivo PDF (máx 10 MB):</label>
+    <input type="file" name="pdf" accept=".pdf" required>
+
+    <button type="submit" class="btn">Subir PDF</button>
+  </form>
+</div>
 
   <!-- Modal Inscripción -->
   <div id="modalInscripcion" class="ventana modal">
@@ -610,6 +612,32 @@ async function buscarYAbrirTest() {
   window.jugadorIdReal = jugador.id;
   abrirLeccionDentro(1); // ✅ ABRE LECCIÓN 1
 }
+/* ---------- VALIDACIÓN SUBIDA PDF ---------- */
+document.getElementById('pdfForm').addEventListener('submit', function (e) {
+  e.preventDefault();
+  const file = this.pdf.files[0];
+  if (!file) { alert("Selecciona un archivo."); return; }
+  if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+    alert("Solo se permite PDF.");
+    return;
+  }
+  if (file.size > 10 * 1024 * 1024) {
+    alert("El archivo no puede superar 10 MB.");
+    return;
+  }
+
+  const id = document.getElementById('pdfJugador').value;
+  const fd = new FormData();
+  fd.append('pdf', file);
+  fetch('/subir_pdf/' + encodeURIComponent(id), {
+    method: 'POST',
+    body: fd,
+    credentials: 'include'
+  })
+  .then(() => location.reload())
+  .catch(() => alert('Error al subir'));
+});
+
   </script>
 
   <!-- Modal Inscripción -->
