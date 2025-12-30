@@ -941,6 +941,40 @@ def asegurar_columnas():
     conn.commit()
     conn.close()
 
+from datetime import date   # ← agrega esta línea arriba del todo si no la tienes
+
+@app.route("/guardar", methods=["POST"])
+def guardar():
+    if not session.get("admin"):
+        return redirect(url_for("admin_login"))
+
+    nombre   = request.form["nombre"]
+    cedula   = request.form["cedula"]
+    anio     = request.form["anio_nacimiento"]
+    posicion = request.form["posicion"]
+    goles    = int(request.form["goles"])
+    asist    = int(request.form["asistencias"])
+    file     = request.files.get("imagen")
+
+    imagen_url = None
+    if file and allowed_file(file.filename):
+        # Opción rápita: subida local
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(UPLOAD_IMG, filename)
+        file.save(file_path)
+        imagen_url = url_for('serve_img', name=filename)
+
+    conn = psycopg2.connect(DATABASE_URL)
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO jugadores (nombre, cedula, anio_nacimiento, posicion, goles, asistencias, imagen, fecha_ingreso) "
+        "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+        (nombre, cedula, anio, posicion, goles, asist, imagen_url, date.today().isoformat())
+    )
+    conn.commit()
+    conn.close()
+    return redirect(url_for("admin_panel"))
+
 # -------------------------------------------------
 # Ejecutar una sola vez al arrancar la aplicación
 # -------------------------------------------------
