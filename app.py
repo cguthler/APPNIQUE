@@ -804,13 +804,18 @@ ADMIN_PANEL_HTML = """
 </form>
 <hr>
 {% for j in jugadores %}
- <div>
+<div style="margin-bottom:8px;">
   <strong>{{ j[1] }}</strong> |
   <span>C.I. {{ j[2] }}</span> |
-  <a href="{{ j[7] }}" target="_blank">&#128196; Ver PDF</a>
-  <a href="/borrar/{{ j[0] }}" onclick="return confirm('¿Borrar?')">&#128465; Borrar</a>
+  <a href="{{ j[7] }}" target="_blank">📄 Ver PDF</a>
+
+  <!-- Botón BORRAR que usa POST -->
+  <form action="/borrar/{{ j[0] }}" method="POST" style="display:inline" onsubmit="return confirm('¿Borrar?')">
+    <button type="submit" style="background:none;border:none;color:red;cursor:pointer;">🗑 Borrar</button>
+  </form>
 </div>
 {% endfor %}
+
 """
 @app.route("/")
 def index():
