@@ -130,7 +130,7 @@ def admin_panel():
     conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
     cursor.execute(
-        "SELECT id, nombre, anio_nacimiento, posicion, goles, asistencias, imagen, pdf_url FROM jugadores ORDER BY id DESC"
+        "SELECT id, nombre, cedula, anio_nacimiento, posicion, goles, asistencias, imagen, pdf_url FROM jugadores ORDER BY id DESC"
     )
     rows = cursor.fetchall()
     conn.close()
@@ -397,7 +397,7 @@ INDEX_HTML = """
     <h2>Plantilla de Jugadores</h2>
     {% for j in jugadores %}
       <div class="jugador">
-        <img src="{% if j[6] %}{{ j[6] }}{% else %}#{% endif %}" alt="Foto">
+        <img src="{% if j[7] %}{{ j[7] }}{% else %}#{% endif %}" alt="Foto">
         <div class="info">
           <strong>{{ j[1]|e }}</strong>
           <span>{{ j[2]|e }} • {{ j[3]|e }}</span>
