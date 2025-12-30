@@ -803,11 +803,24 @@ ADMIN_PANEL_HTML = """
   <button type="submit">Guardar Jugador</button>
 </form>
 <hr>
+
 {% for j in jugadores %}
 <div style="margin-bottom:8px;">
   <strong>{{ j[1] }}</strong> |
   <span>C.I. {{ j[2] }}</span> |
   <a href="{{ j[7] }}" target="_blank">📄 Ver PDF</a>
+
+  <!-- EDITAR -->
+  <form action="/editar/{{ j[0] }}" method="GET" style="display:inline">
+    <button type="submit" style="background:none;border:none;color:blue;cursor:pointer;">✏️ Editar</button>
+  </form>
+
+  <!-- BORRAR -->
+  <form action="/borrar/{{ j[0] }}" method="POST" style="display:inline" onsubmit="return confirm('¿Borrar?')">
+    <button type="submit" style="background:none;border:none;color:red;cursor:pointer;">🗑 Borrar</button>
+  </form>
+</div>
+{% endfor %}
 
   <!-- Botón BORRAR que usa POST -->
   <form action="/borrar/{{ j[0] }}" method="POST" style="display:inline" onsubmit="return confirm('¿Borrar?')">
@@ -993,6 +1006,71 @@ def guardar():
 # -------------------------------------------------
 init_db()
 asegurar_columnas()
+
+# ---------- RUTA EDITAR ----------
+@app.route("/editar/<int:jugador_id>", methods=["GET", "POST"])
+def editar(jugador_id):
+    if not session.get("admin"):
+        return redirect(url_for("admin_login"))
+
+    conn = psycopg2.connect(DATABASE_URL)
+    cursor = conn.cursor()
+
+    if request.method == "POST":
+        nombre   = request.form["nombre"]
+        cedula   = request.form["cedula"]
+        anio     = request.form["anio_nacimiento"]
+        posicion = request.form["posicion"]
+        goles    = int(request.form["goles"])
+        asist    = int(request.form["asistencias"])
+        file     = request.files.get("imagen")
+
+        if file and allowed_file(file.filename):
+            resultado = cld_upload(
+                file,
+                folder=f"jugadores/{cedula}",
+                public_id=f"img-{int(datetime.now().timestamp())}",
+                resource_type='image'
+            )
+            imagen_url = resultado['secure_url']
+            cursor.execute(
+                "UPDATE jugadores SET nombre=%s, cedula=%s, anio_nacimiento=%s, posicion=%s, goles=%s, asistencias=%s, imagen=%s WHERE id=%s",
+                (nombre, cedula, anio, posicion, goles, asist, imagen_url, jugador_id)
+            )
+        else:
+            cursor.execute(
+                "UPDATE jugadores SET nombre=%s, cedula=%s, anio_nacimiento=%s, posicion=%s, goles=%s, asistencias=%s WHERE id=%s",
+                (nombre, cedula, anio, posicion, goles, asist, jugador_id)
+            )
+        conn.commit()
+        conn.close()
+        return redirect(url_for("admin_panel"))
+
+    # GET → mostramos formulario con datos actuales
+    cursor.execute(
+        "SELECT id, nombre, cedula, anio_nacimiento, posicion, goles, asistencias, imagen, pdf_url FROM jugadores WHERE id = %s",
+        (jugador_id,)
+    )
+    jugador = cursor.fetchone()
+    conn.close()
+    return render_template_string(EDITAR_HTML, j=jugador)
+
+# ---------- TEMPLATE EDITAR ----------
+EDITAR_HTML = """
+<h2>Editar Jugador</h2>
+<a href="/admin/panel">← Volver al panel</a>
+<form method="post" enctype="multipart/form-data">
+  <input type="hidden" name="id" value="{{ j[0] }}">
+  <label>Nombre completo</label><input name="nombre" value="{{ j[1] }}" required>
+  <label>Cédula</label><input name="cedula" value="{{ j[2] }}" pattern="[0-9]+" maxlength="20" required>
+  <label>Año nacimiento</label><input type="number" name="anio_nacimiento" value="{{ j[3] }}" required>
+  <label>Posición</label><input name="posicion" value="{{ j[4] }}" required>
+  <label>Goles</label><input type="number" name="goles" value="{{ j[5] }}" required>
+  <label>Asistencias</label><input type="number" name="asistencias" value="{{ j[6] }}" required>
+  <label>Nueva foto (opcional)</label><input type="file" name="imagen" accept="image/*">
+  <button type="submit">Guardar cambios</button>
+</form>
+"""
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
