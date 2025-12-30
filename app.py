@@ -258,13 +258,21 @@ def serve_pdf(name):
     if RENDER:
         return redirect(name)
     return send_from_directory(UPLOAD_DOCS, safe_name)
-@app.route("/borrar/<int:jugador_id>")
+ 
+@app.route("/borrar/<int:jugador_id>", methods=["POST"])
 def borrar(jugador_id):
     if not session.get("admin"):
         return redirect(url_for("admin_login"))
+
     conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
+
+    # 1. Borrar inscripciones que dependen de este jugador
+    cursor.execute("DELETE FROM inscripciones WHERE jugador_id = %s", (jugador_id,))
+
+    # 2. Ahora sí borrar al jugador
     cursor.execute("DELETE FROM jugadores WHERE id = %s", (jugador_id,))
+
     conn.commit()
     conn.close()
     return redirect(url_for("admin_panel"))
