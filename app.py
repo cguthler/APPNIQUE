@@ -821,15 +821,8 @@ ADMIN_PANEL_HTML = """
   </form>
 </div>
 {% endfor %}
+"""   
 
-  <!-- Botón BORRAR que usa POST -->
-  <form action="/borrar/{{ j[0] }}" method="POST" style="display:inline" onsubmit="return confirm('¿Borrar?')">
-    <button type="submit" style="background:none;border:none;color:red;cursor:pointer;">🗑 Borrar</button>
-  </form>
-</div>
-{% endfor %}
-
-"""
 @app.route("/")
 def index():
     conn = psycopg2.connect(DATABASE_URL)
