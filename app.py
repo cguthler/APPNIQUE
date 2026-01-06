@@ -378,7 +378,7 @@ INDEX_HTML = """
   <div class="ventana">
     <h1>⚽ NIQUÉE FÚTBOL CLUB</h1>
     <div class="galeria">
-      <img src="{{ url_for('static', filename='uploads/niqueeblanco.jpg') }}" alt="Equipo 1">
+      <img src="{{ url_for('static', filename='uploads/niquenegro.jpg') }}" alt="Equipo 1">
       <img src="{{ url_for('static', filename='uploads/logo.png') }}" alt="Equipo 2">
       <img src="{{ url_for('static', filename='uploads/gruponique.jpg') }}" alt="Equipo 3">
       <img src="{{ url_for('static', filename='uploads/niqueazul.jpg') }}" alt="Equipo 4">
