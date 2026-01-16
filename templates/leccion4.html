@@ -1,0 +1,148 @@
+<style>
+  body{background:#1b263b;color:#ffff00;font-family:Segoe UI;margin:0;padding:20px}
+  h2{color:#00ff00;text-align:center}
+  .card{background:#415a77;border-radius:8px;padding:15px;margin:10px 0}
+  .btn{background:#00ff00;color:#1b263b;border:none;padding:8px 12px;border-radius:6px;cursor:pointer}
+  .btn:hover{background:#ffff00}
+  .hidden{display:none}
+  .alert-success{color:#00ff00}
+  .alert-warning{color:#ffcc00}
+</style>
+
+<h2>Lección 4: Control orientado</h2>
+
+<div class="card">
+  <strong>Guardiola:</strong> "El control no es para que la pelota se quede contigo, es para que el partido siga corriendo a tu favor."
+</div>
+<div class="card">
+  <strong>Xavi:</strong> "Recibe ya medio girado; si terminas el control de frente al rival, perdiste."
+</div>
+<div class="card">
+  <strong>Lillo:</strong> "Un metro es suficiente: que el balón viaje lo mínimo y tú gires lo máximo."
+</div>
+<div class="card">
+  <ul>
+    <li>Cuerpo en diagonal: hombro derecho a portería si vienes por la izquierda.</li>
+    <li>Suaviza con interior, abre con exterior en el mismo toque.</li>
+    <li>Coloca la pelota al pie libre; rival al hombro fuerte.</li>
+    <li>Mira por encima del hombro antes de recibir.</li>
+    <li>Termina pensando en el siguiente pase; el control es el primer pase.</li>
+  </ul>
+</div>
+
+<button class="btn" onclick="iniciarTest()">Iniciar test</button>
+
+<div id="testArea" class="hidden"></div>
+<div id="resultArea" style="margin-top:15px"></div>
+
+<script>
+const preguntas = [
+  {
+    q: "¿Qué dice Guardiola que debe lograr el control?",
+    o: ["Quedarse quieto", "Que el partido siga a tu favor", "Invitar al contacto"],
+    r: 1
+  },
+  {
+    q: "Según Xavi, ¿cómo debes recibir?",
+    o: ["De frente al rival", "Medio girado", "Con la espalda"],
+    r: 1
+  },
+  {
+    q: "¿Qué distancia recomienda Lillo que mueva el balón?",
+    o: ["Un metro", "Tres metros", "Cinco metros"],
+    r: 0
+  },
+  {
+    q: "¿Dónde pones la pelota para protegerla?",
+    o: ["Al pie libre", "Al pie fuerte", "Entre ambos"],
+    r: 0
+  },
+  {
+    q: "¿Qué hombro apuntas a portería si vienes por la izquierda?",
+    o: ["Izquierdo", "Derecho", "Cualquiera"],
+    r: 1
+  },
+  {
+    q: "¿Dónde miras justo antes de recibir?",
+    o: ["Al balón", "Por encima del hombro", "Al césped"],
+    r: 1
+  },
+  {
+    q: "¿Qué pies usas para suavizar y luego abrir en un solo contacto?",
+    o: ["Interior luego exterior", "Exterior luego interior", "Planta y talón"],
+    r: 0
+  },
+  {
+    q: "¿Qué debes pensar al terminar el control?",
+    o: ["En el regate", "En el próximo pase", "En la celebración"],
+    r: 1
+  },
+  {
+    q: "¿Qué evitas al colocar bien el cuerpo?",
+    o: ["Invitar al contacto", "Hacer pases", "Correr"],
+    r: 0
+  },
+  {
+    q: "Según el método, ¿cuántos toques necesitas para orientarte y pasar?",
+    o: ["Uno", "Dos", "Tres"],
+    r: 1
+  }
+];
+
+let indice = 0, aciertos = 0;
+
+function iniciarTest() {
+  document.getElementById("testArea").classList.remove("hidden");
+  mostrarPregunta();
+}
+
+function mostrarPregunta() {
+  const area = document.getElementById("testArea");
+  if (indice >= preguntas.length) {
+    finalizar();
+    return;
+  }
+  const p = preguntas[indice];
+  area.innerHTML = `
+    <div class="card">
+      <strong>${indice + 1}/10</strong> ${p.q}<br>
+      ${p.o.map((opc, i) => `
+        <label style="display:block;margin:6px 0">
+          <input type="radio" name="resp" value="${i}"> ${opc}
+        </label>
+      `).join("")}
+      <button class="btn" onclick="verificar()">Siguiente</button>
+    </div>
+  `;
+}
+
+function verificar() {
+  const sel = document.querySelector('input[name="resp"]:checked');
+  if (!sel) return alert("Elige una opción");
+  if (parseInt(sel.value) === preguntas[indice].r) aciertos++;
+  indice++;
+  mostrarPregunta();
+}
+
+function finalizar() {
+  const total = preguntas.length;
+  if (aciertos >= 8) {
+    localStorage.setItem("modulo1", "aprobado");
+    fetch("/guardar_aprobacion_pg", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        jugador_id: window.jugadorIdReal || 1,
+        leccion_numero: 4,
+        nota: aciertos
+      })
+    });
+    document.getElementById("resultArea").innerHTML =
+      `<div class="alert-success">¡Aprobaste lección 4! Estás listo para el siguiente módulo.</div>`;
+  } else {
+    document.getElementById("resultArea").innerHTML =
+      `<div class="alert-warning">Respondiste ${aciertos}/${total}. Necesitas 8/10 para aprobar.</div>`;
+    setTimeout(() => location.reload(), 3000);
+  }
+}
+</script>
