@@ -130,7 +130,7 @@ def admin_panel():
     conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
     cursor.execute(
-        "SELECT id, nombre, anio_nacimiento, posicion, goles, asistencias, imagen, pdf_url FROM jugadores ORDER BY id DESC"
+        "SELECT id, nombre, cedula, anio_nacimiento, posicion, goles, asistencias, imagen, pdf_url FROM jugadores ORDER BY id DESC"
     )
     rows = cursor.fetchall()
     conn.close()
@@ -258,13 +258,21 @@ def serve_pdf(name):
     if RENDER:
         return redirect(name)
     return send_from_directory(UPLOAD_DOCS, safe_name)
-@app.route("/borrar/<int:jugador_id>")
+ 
+@app.route("/borrar/<int:jugador_id>", methods=["POST"])
 def borrar(jugador_id):
     if not session.get("admin"):
         return redirect(url_for("admin_login"))
+
     conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
+
+    # 1. Borrar inscripciones que dependen de este jugador
+    cursor.execute("DELETE FROM inscripciones WHERE jugador_id = %s", (jugador_id,))
+
+    # 2. Ahora sí borrar al jugador
     cursor.execute("DELETE FROM jugadores WHERE id = %s", (jugador_id,))
+
     conn.commit()
     conn.close()
     return redirect(url_for("admin_panel"))
@@ -370,7 +378,7 @@ INDEX_HTML = """
   <div class="ventana">
     <h1>⚽ NIQUÉE FÚTBOL CLUB</h1>
     <div class="galeria">
-      <img src="{{ url_for('static', filename='uploads/niqueeblanco.jpg') }}" alt="Equipo 1">
+      <img src="{{ url_for('static', filename='uploads/niquenegro.jpg') }}" alt="Equipo 1">
       <img src="{{ url_for('static', filename='uploads/logo.png') }}" alt="Equipo 2">
       <img src="{{ url_for('static', filename='uploads/gruponique.jpg') }}" alt="Equipo 3">
       <img src="{{ url_for('static', filename='uploads/niqueazul.jpg') }}" alt="Equipo 4">
@@ -397,7 +405,7 @@ INDEX_HTML = """
     <h2>Plantilla de Jugadores</h2>
     {% for j in jugadores %}
       <div class="jugador">
-        <img src="{% if j[6] %}{{ j[6] }}{% else %}#{% endif %}" alt="Foto">
+        <img src="{% if j[7] %}{{ j[7] }}{% else %}#{% endif %}" alt="Foto">
         <div class="info">
           <strong>{{ j[1]|e }}</strong>
           <span>{{ j[2]|e }} • {{ j[3]|e }}</span>
@@ -426,21 +434,23 @@ INDEX_HTML = """
   </div>
 
   <!-- Modal PDF -->
-  <div id="pdfModal" class="ventana modal">
-    <span style="float:right;cursor:pointer;" onclick="this.parentElement.style.display='none'">&times;</span>
-    <h3>Subir PDF de jugador</h3>
-    <form id="pdfForm" enctype="multipart/form-data">
-      <label>Seleccione jugador:</label>
-      <select id="pdfJugador" required>
-        {% for j in jugadores %}
-          <option value="{{ j[0] }}">{{ j[1] }}</option>
-        {% endfor %}
-      </select>
-      <label>Archivo PDF:</label>
-      <input type="file" name="pdf" accept=".pdf" required>
-      <button type="submit" class="btn">Subir PDF</button>
-    </form>
-  </div>
+<div id="pdfModal" class="ventana modal">
+  <span style="float:right;cursor:pointer;" onclick="this.parentElement.style.display='none'">&times;</span>
+  <h3>Subir acta PDF del jugador</h3>
+  <form id="pdfForm" enctype="multipart/form-data">
+    <label>Seleccione jugador:</label>
+    <select id="pdfJugador" required>
+      {% for j in jugadores %}
+        <option value="{{ j[0] }}">{{ j[1] }}</option>
+      {% endfor %}
+    </select>
+
+    <label>Archivo PDF (máx 10 MB):</label>
+    <input type="file" name="pdf" accept=".pdf" required>
+
+    <button type="submit" class="btn">Subir PDF</button>
+  </form>
+</div>
 
   <!-- Modal Inscripción -->
   <div id="modalInscripcion" class="ventana modal">
@@ -610,6 +620,32 @@ async function buscarYAbrirTest() {
   window.jugadorIdReal = jugador.id;
   abrirLeccionDentro(1); // ✅ ABRE LECCIÓN 1
 }
+/* ---------- VALIDACIÓN SUBIDA PDF ---------- */
+document.getElementById('pdfForm').addEventListener('submit', function (e) {
+  e.preventDefault();
+  const file = this.pdf.files[0];
+  if (!file) { alert("Selecciona un archivo."); return; }
+  if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+    alert("Solo se permite PDF.");
+    return;
+  }
+  if (file.size > 10 * 1024 * 1024) {
+    alert("El archivo no puede superar 10 MB.");
+    return;
+  }
+
+  const id = document.getElementById('pdfJugador').value;
+  const fd = new FormData();
+  fd.append('pdf', file);
+  fetch('/subir_pdf/' + encodeURIComponent(id), {
+    method: 'POST',
+    body: fd,
+    credentials: 'include'
+  })
+  .then(() => location.reload())
+  .catch(() => alert('Error al subir'));
+});
+
   </script>
 
   <!-- Modal Inscripción -->
@@ -656,28 +692,36 @@ function abrirModulo(){
       <span class="close" onclick="modal.style.display='none'">&times;</span>
       <h3>Lecciones del Módulo</h3>
       <div class="list-group">
-        <a href="/leccion/1" target="_blank" class="list-group-item">Lección 1: Fundamentos y reglas</a>
-        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(2)">Lección 2: Pase interior</a>
-        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(3)">Lección 3: Conducción</a>
-        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(4)">Lección 4: Control orientado</a>
-        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(5)">Lección 5: Presión tras pérdida</a>
-        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(6)">Lección 6: Saque de banda</a>
-        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(7)">Lección 7: Corner a favor</a>
-        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(8)">Lección 8: Corner en contra</a>
-        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(9)">Lección 9: Posesión y descanso</a>
-        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(10)">Lección 10: Fair Play y actitud</a>
+        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(1); return false;">Lección 1: Fundamentos y reglas</a>
+        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(2); return false;">Lección 2: Pase interior</a>
+        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(3); return false;">Lección 3: Conducción</a>
+        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(4); return false;">Lección 4: Control orientado</a>
+        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(5); return false;">Lección 5: Presión tras pérdida</a>
+        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(6); return false;">Lección 6: Saque de banda</a>
+        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(7); return false;">Lección 7: Corner a favor</a>
+        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(8); return false;">Lección 8: Corner en contra</a>
+        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(9); return false;">Lección 9: Posesión y descanso</a>
+        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(10); return false;">Lección 10: Fair Play y actitud</a>
       </div>
       <button class="btn btn-sm btn-secondary mt-3" onclick="location.reload()">Cerrar</button>
     </div>`;
   modal.style.display = 'block';
 }
-
 function abrirLeccionDentro(n){
   fetch("/leccion/" + n)
     .then(r => r.text())
     .then(html => {
       const modal = document.getElementById('moduloModal');
       modal.innerHTML = html;
+
+      /* =====  EJECUTAR SCRIPTS INSERTADOS  ===== */
+      modal.querySelectorAll('script').forEach(oldScript => {
+        const newScript = document.createElement('script');
+        Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+        newScript.textContent = oldScript.textContent;
+        oldScript.parentNode.replaceChild(newScript, oldScript);
+      });
+
       modal.style.display = 'block';
       modal.scrollTop = 0;
     });
@@ -686,8 +730,7 @@ function abrirLeccionDentro(n){
 function volverAlModal(){
   location.reload();
 }
-</script>
-<script>
+
 /* ---------- MODAL CENTRADO Y SCROLLEABLE ---------- */
 function abrirModulo(){
   /* si ya existe solo lo mostramos */
@@ -730,17 +773,6 @@ function cerrarModulo(){
   if(m) m.style.display = 'none';
 }
 
-function abrirLeccionDentro(n){
-  fetch("/leccion/" + n)
-    .then(r => r.text())
-    .then(html => {
-      const modal = document.getElementById('moduloModal');
-      modal.innerHTML = html;
-      modal.style.display = 'block';
-      modal.scrollTop = 0;
-    });
-}
-
 function volverAlModal(){
   location.reload();
 }
@@ -771,15 +803,26 @@ ADMIN_PANEL_HTML = """
   <button type="submit">Guardar Jugador</button>
 </form>
 <hr>
+
 {% for j in jugadores %}
- <div>
+<div style="margin-bottom:8px;">
   <strong>{{ j[1] }}</strong> |
   <span>C.I. {{ j[2] }}</span> |
-  <a href="{{ j[7] }}" target="_blank">&#128196; Ver PDF</a>
-  <a href="/borrar/{{ j[0] }}" onclick="return confirm('¿Borrar?')">&#128465; Borrar</a>
+  <a href="{{ j[7] }}" target="_blank">📄 Ver PDF</a>
+
+  <!-- EDITAR -->
+  <form action="/editar/{{ j[0] }}" method="GET" style="display:inline">
+    <button type="submit" style="background:none;border:none;color:blue;cursor:pointer;">✏️ Editar</button>
+  </form>
+
+  <!-- BORRAR -->
+  <form action="/borrar/{{ j[0] }}" method="POST" style="display:inline" onsubmit="return confirm('¿Borrar?')">
+    <button type="submit" style="background:none;border:none;color:red;cursor:pointer;">🗑 Borrar</button>
+  </form>
 </div>
 {% endfor %}
-"""
+"""   
+
 @app.route("/")
 def index():
     conn = psycopg2.connect(DATABASE_URL)
@@ -917,11 +960,110 @@ def asegurar_columnas():
     conn.commit()
     conn.close()
 
+from datetime import date   # ← agrega esta línea arriba del todo si no la tienes
+
+@app.route("/guardar", methods=["POST"])
+def guardar():
+    if not session.get("admin"):
+        return redirect(url_for("admin_login"))
+
+    nombre   = request.form["nombre"]
+    cedula   = request.form["cedula"]
+    anio     = request.form["anio_nacimiento"]
+    posicion = request.form["posicion"]
+    goles    = int(request.form["goles"])
+    asist    = int(request.form["asistencias"])
+    file     = request.files.get("imagen")
+
+    imagen_url = None
+    if file and allowed_file(file.filename):
+        # Opción rápita: subida local
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(UPLOAD_IMG, filename)
+        file.save(file_path)
+        imagen_url = url_for('serve_img', name=filename)
+
+    conn = psycopg2.connect(DATABASE_URL)
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO jugadores (nombre, cedula, anio_nacimiento, posicion, goles, asistencias, imagen, fecha_ingreso) "
+        "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+        (nombre, cedula, anio, posicion, goles, asist, imagen_url, date.today().isoformat())
+    )
+    conn.commit()
+    conn.close()
+    return redirect(url_for("admin_panel"))
+
 # -------------------------------------------------
 # Ejecutar una sola vez al arrancar la aplicación
 # -------------------------------------------------
 init_db()
 asegurar_columnas()
+
+# ---------- RUTA EDITAR ----------
+@app.route("/editar/<int:jugador_id>", methods=["GET", "POST"])
+def editar(jugador_id):
+    if not session.get("admin"):
+        return redirect(url_for("admin_login"))
+
+    conn = psycopg2.connect(DATABASE_URL)
+    cursor = conn.cursor()
+
+    if request.method == "POST":
+        nombre   = request.form["nombre"]
+        cedula   = request.form["cedula"]
+        anio     = request.form["anio_nacimiento"]
+        posicion = request.form["posicion"]
+        goles    = int(request.form["goles"])
+        asist    = int(request.form["asistencias"])
+        file     = request.files.get("imagen")
+
+        if file and allowed_file(file.filename):
+            resultado = cld_upload(
+                file,
+                folder=f"jugadores/{cedula}",
+                public_id=f"img-{int(datetime.now().timestamp())}",
+                resource_type='image'
+            )
+            imagen_url = resultado['secure_url']
+            cursor.execute(
+                "UPDATE jugadores SET nombre=%s, cedula=%s, anio_nacimiento=%s, posicion=%s, goles=%s, asistencias=%s, imagen=%s WHERE id=%s",
+                (nombre, cedula, anio, posicion, goles, asist, imagen_url, jugador_id)
+            )
+        else:
+            cursor.execute(
+                "UPDATE jugadores SET nombre=%s, cedula=%s, anio_nacimiento=%s, posicion=%s, goles=%s, asistencias=%s WHERE id=%s",
+                (nombre, cedula, anio, posicion, goles, asist, jugador_id)
+            )
+        conn.commit()
+        conn.close()
+        return redirect(url_for("admin_panel"))
+
+    # GET → mostramos formulario con datos actuales
+    cursor.execute(
+        "SELECT id, nombre, cedula, anio_nacimiento, posicion, goles, asistencias, imagen, pdf_url FROM jugadores WHERE id = %s",
+        (jugador_id,)
+    )
+    jugador = cursor.fetchone()
+    conn.close()
+    return render_template_string(EDITAR_HTML, j=jugador)
+
+# ---------- TEMPLATE EDITAR ----------
+EDITAR_HTML = """
+<h2>Editar Jugador</h2>
+<a href="/admin/panel">← Volver al panel</a>
+<form method="post" enctype="multipart/form-data">
+  <input type="hidden" name="id" value="{{ j[0] }}">
+  <label>Nombre completo</label><input name="nombre" value="{{ j[1] }}" required>
+  <label>Cédula</label><input name="cedula" value="{{ j[2] }}" pattern="[0-9]+" maxlength="20" required>
+  <label>Año nacimiento</label><input type="number" name="anio_nacimiento" value="{{ j[3] }}" required>
+  <label>Posición</label><input name="posicion" value="{{ j[4] }}" required>
+  <label>Goles</label><input type="number" name="goles" value="{{ j[5] }}" required>
+  <label>Asistencias</label><input type="number" name="asistencias" value="{{ j[6] }}" required>
+  <label>Nueva foto (opcional)</label><input type="file" name="imagen" accept="image/*">
+  <button type="submit">Guardar cambios</button>
+</form>
+"""
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))

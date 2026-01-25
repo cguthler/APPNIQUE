@@ -25,16 +25,13 @@
     overflow-y: auto;
   }
 </style>
-<<<<<<< HEAD
+
 <!-- DEBUG: Lección 1 cargada -->
 
-=======
->>>>>>> db3a2ff0e1a0edb87796bca2c28c3b69b1046618
-<button onclick="location.reload()" class="btn btn-sm btn-secondary mb-3">← Volver al módulo</button>
-
+<button onclick="location.reload()" class="btn btn-sm btn-secondary mb-3">← Volver al módulo</button> 
+ 
 <div class="ventana" style="max-width:700px;margin:auto">
   <h4>Lección 1: Fundamentos y reglas del fútbol</h4>
-  <div class="mt-3 p-3 bg-dark rounded small">
     <!-- TEXTO ORIGINAL SIN CAMBIOS -->
     <p>Listos para el partido esperado, el árbitro coloca el balón sobre el círculo central y pita el inicio. Cada jugador entiende que:<br>
     Primero, <strong>la mano</strong>: solo el portero puede usarla y solo dentro del rectángulo. Cualquier otro contacto es falta inmediata y, en el área, penal.<br>
@@ -65,9 +62,11 @@
     Cuando el árbitro pita el final, el equipo que supo conjugar reglas, fundamentos y pequeñas dosis de profesionalismo se lleva los tres puntos y la satisfacción de haber jugado al fútbol sin sobresaltos ni reclamos.</p>
   </div>
 
-  <div class="text-center mt-4">
-    <button class="btn-leer" onclick="mostrarTest()">Leído → Comenzar test</button>
-  </div>
+    <div class="text-center mt-4">
+  <button class="btn btn-success" onclick="mostrarTest()">
+    Leído y empezar test
+  </button>
+</div>
 
   <div id="testArea"></div>
   <div id="resultArea" class="mt-3"></div>
@@ -100,7 +99,6 @@
   }
 
   function mostrarTest() {
-    document.querySelector('.btn-leer').style.display = 'none';
     const TIME_PER_Q = 12;
     preguntas = [
       {q:"¿Quién puede usar las manos dentro del rectángulo?",opts:["Cualquier jugador","Solo el portero","El capitán","Nadie"],ok:1},
@@ -180,93 +178,9 @@
     window.open("/leccion/2", "_blank");
   });
 </script>
-  <script>
-  function volverAlModal() {
-    location.reload();
-  }
-
-  function mostrarTest() {
-    document.querySelector('.btn-leer').style.display = 'none';
-
-    const TIME_PER_Q = 12;
-    const preguntas = [
-      {q:"¿Quién puede usar las manos dentro del rectángulo?",opts:["Cualquier jugador","Solo el portero","El capitán","Nadie"],ok:1},
-      {q:"¿Qué ocurre si estás más cerca del arco que el último defensa al recibir un pase?",opts:["Gol válido","Falta directa","Offside","Saque de meta"],ok:2},
-      {q:"¿Cómo se debe realizar el saque de banda?",opts:["Con un pie en la línea","Saltando","Dos pies en el campo y pelota detrás de la cabeza","Con la mano"],ok:2},
-      {q:"¿Dónde se cobra un penal?",opts:["Desde el círculo central","Desde el punto penal","Desde la banda","Desde el corner"],ok:1},
-      {q:"¿Con qué parte del pie se recomienda controlar un balón alto?",opts:["Empeine","Planta o interior","Talón","Rodilla"],ok:1},
-      {q:"¿A qué pie se le debe pasar la pelota al compañero?",opts:["Al pie malo","Al que esté más cerca","Al pie bueno","Al que pida de talón"],ok:2},
-      {q:"¿A qué poste se recomienda apuntar al disparar?",opts:["Al que esté más lejos","Al palo cercano","Al árbitro","Al cielo"],ok:1},
-      {q:"¿Cómo se debe marcar al rival?",opts:["Por detrás","De frente","De costado, brazo extendido, sin derribar","Corriendo tras él"],ok:2},
-      {q:"¿Qué se debe hacer antes de pedir la pelota?",opts:["Quedarse quieto","Gritar más fuerte","Desmarcarse con dos pasos y señalar","Esperar al árbitro"],ok:2},
-      {q:"¿Qué error evita el equipo que quiere mantener el orden?",opts:["Salir por el centro del área","Pase largo","Tiro al arco","Corners"],ok:0}
-    ];
-
-    let idx = 0, aciertos = 0, timer = null;
-
-    function mostrarPregunta(){
-      const p = preguntas[idx];
-      let html = `<div class="timer-bar"><div class="timer-fill" style="width:100%"></div></div>
-                  <b>Pregunta ${idx+1}/10</b> – ${p.q}<br><small id="countdown">${TIME_PER_Q}s</small><div class="mt-2">`;
-      p.opts.forEach((o,k)=> html += `
-        <div class="form-check">
-          <input class="form-check-input" type="radio" name="opt" id="o${k}" value="${k}">
-          <label class="form-check-label" for="o${k}" style="color:#fff">${o}</label>
-        </div>`);
-      html += `</div><button class="btn btn-primary btn-sm mt-2" onclick="corregir()">Siguiente</button>`;
-      document.getElementById('testArea').innerHTML = html;
-
-      let seg = TIME_PER_Q;
-      const bar = document.querySelector('.timer-fill');
-      const txt = document.getElementById('countdown');
-      if (timer) clearInterval(timer);
-      timer = setInterval(()=>{
-        seg--;
-        bar.style.width = (seg/TIME_PER_Q*100) + '%';
-        txt.textContent = seg + 's';
-        if(seg === 0){ clearInterval(timer); timeOut(); }
-      },1000);
-    }
-
-    function timeOut(){ alert("Se acabó el tiempo. Volvé a intentarlo."); volverAlModal(); }
-
-    function corregir(){
-      const sel = document.querySelector('input[name="opt"]:checked');
-      if(!sel){ alert("Elegí una opción."); return; }
-      clearInterval(timer);
-      if(parseInt(sel.value) === preguntas[idx].ok) aciertos++;
-      idx++;
-      if(idx < 10){ mostrarPregunta(); } else { finalizar(); }
-    }
-
-    function finalizar(){
-      const total = preguntas.length;
-      if(aciertos === total){
-        localStorage.setItem("modulo1","aprobado");
-        document.getElementById('resultArea').innerHTML =
-          `<div class="alert alert-success">¡Aprobaste! Estás listo para jugar tu partido.</div>`;
-        fetch("/guardar_aprobacion", {
-          method: "POST",
-          headers: {"Content-Type":"application/json"},
-          body: JSON.stringify({jugador_id: 1, leccion_numero: 1, nota: aciertos})
-        });
-        const btnSiguiente = document.createElement('button');
-        btnSiguiente.className = 'btn btn-success mt-3';
-        btnSiguiente.textContent = 'Ver siguiente lección →';
-        btnSiguiente.onclick = () => window.open("/leccion/2", "_blank");
-        document.getElementById('resultArea').appendChild(btnSiguiente);
-      } else {
-        document.getElementById('resultArea').innerHTML =
-          `<div class="alert alert-warning">Respondiste ${aciertos}/${total}. Necesitas 10/10 para aprobar.</div>`;
-        setTimeout(()=> volverAlModal(), 3000);
-      }
-    }
-
-    mostrarPregunta();
-  }
-</script>
 </body>
 </html>
+
 
 
 

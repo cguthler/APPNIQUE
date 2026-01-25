@@ -1,0 +1,146 @@
+<style>
+  body{background:#1b263b;color:#ffff00;font-family:Segoe UI;margin:0;padding:20px}
+  h2{color:#00ff00;text-align:center}
+  .card{background:#415a77;border-radius:8px;padding:15px;margin:10px 0}
+  .btn{background:#00ff00;color:#1b263b;border:none;padding:8px 12px;border-radius:6px;cursor:pointer}
+  .btn:hover{background:#ffff00}
+  .hidden{display:none}
+  .alert-success{color:#00ff00}
+  .alert-warning{color:#ffcc00}
+</style>
+
+<h2>Lección 3: Conducción del balón</h2>
+
+<div class="card">
+  <strong>Clave Bielsa:</strong> “Lleva la pelota como si fuera tu hermano menor; mira el frente, no el balón.”
+</div>
+<div class="card">
+  <strong>Clave Guardiola:</strong> “Controla el espacio, no solo el balón; toca cada metro y acelera después del toque.”
+</div>
+<div class="card">
+  <ul>
+    <li>Mira adelante y usa la periferia.</li>
+    <li>Toca cada 1-2 metros; si das tres sin mirar, te adivinan.</li>
+    <li>Exterior para velocidad, interior para girar, planta para frenar.</li>
+    <li>Protege con cadera y brazo; tu cuerpo es escudo.</li>
+    <li>Frena medio paso antes del rival, luego acelera.</li>
+    <li>Termina siempre con pase o tiro.</li>
+  </ul>
+</div>
+
+<button class="btn" onclick="iniciarTest()">Iniciar test</button>
+
+<div id="testArea" class="hidden"></div>
+<div id="resultArea" style="margin-top:15px"></div>
+
+<script>
+const preguntas = [
+  {
+    q: "¿Dónde debes mirar mientras conduces?",
+    o: ["Al balón", "Al frente y periferia", "Al pie"],
+    r: 1
+  },
+  {
+    q: "¿Cada cuántos metros recomiendan tocar Bielsa y Guardiola?",
+    o: ["1-2 m", "3-4 m", "5-6 m"],
+    r: 0
+  },
+  {
+    q: "¿Qué parte del pie usas para máxima velocidad?",
+    o: ["Interior", "Exterior", "Planta"],
+    r: 1
+  },
+  {
+    q: "¿Dónde debe quedar tu cuerpo si te presionan?",
+    o: ["Al lado del balón", "Entre rival y balón", "Detrás del balón"],
+    r: 1
+  },
+  {
+    q: "¿Cuándo aceleras después de un toque?",
+    o: ["Antes de tocar", "Durante el toque", "Justo después"],
+    r: 2
+  },
+  {
+    q: "¿Qué haces justo antes de encontrarte con un rival?",
+    o: ["Aceleras", "Frenas medio paso", "Saltas"],
+    r: 1
+  },
+  {
+    q: "¿Cómo termina todo circuito de Guardiola?",
+    o: ["Regate", "Pase o tiro", "Túnel"],
+    r: 1
+  },
+  {
+    q: "¿Qué parte usas para girar rápidamente?",
+    o: ["Interior", "Exterior", "Talon"],
+    r: 0
+  },
+  {
+    q: "¿Qué usas como escudo mientras conduces?",
+    o: ["Solo el pie", "Cuerpo y brazo", "Solo la cabeza"],
+    r: 1
+  },
+  {
+    q: "¿Qué debes evitar mientras conduces?",
+    o: ["Tocar mucho", "Mirar al balón", "Proteger"],
+    r: 1
+  }
+];
+
+let indice = 0, aciertos = 0;
+
+function iniciarTest() {
+  document.getElementById("testArea").classList.remove("hidden");
+  mostrarPregunta();
+}
+
+function mostrarPregunta() {
+  const area = document.getElementById("testArea");
+  if (indice >= preguntas.length) {
+    finalizar();
+    return;
+  }
+  const p = preguntas[indice];
+  area.innerHTML = `
+    <div class="card">
+      <strong>${indice + 1}/10</strong> ${p.q}<br>
+      ${p.o.map((opc, i) => `
+        <label style="display:block;margin:6px 0">
+          <input type="radio" name="resp" value="${i}"> ${opc}
+        </label>
+      `).join("")}
+      <button class="btn" onclick="verificar()">Siguiente</button>
+    </div>
+  `;
+}
+
+function verificar() {
+  const sel = document.querySelector('input[name="resp"]:checked');
+  if (!sel) return alert("Elige una opción");
+  if (parseInt(sel.value) === preguntas[indice].r) aciertos++;
+  indice++;
+  mostrarPregunta();
+}
+
+function finalizar() {
+  const total = preguntas.length;
+  if (aciertos >= 8) {
+    localStorage.setItem("modulo1", "aprobado");
+    fetch("/guardar_aprobacion_pg", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        jugador_id: window.jugadorIdReal || 1,
+        leccion_numero: 3,
+        nota: aciertos
+      })
+    });
+    document.getElementById("resultArea").innerHTML =
+      `<div class="alert-success">¡Aprobaste lección 3! Estás listo para el siguiente módulo.</div>`;
+  } else {
+    document.getElementById("resultArea").innerHTML =
+      `<div class="alert-warning">Respondiste ${aciertos}/${total}. Necesitas 8/10 para aprobar.</div>`;
+    setTimeout(() => location.reload(), 3000);
+  }
+}
+</script>
