@@ -1065,5 +1065,37 @@ EDITAR_HTML = """
 </form>
 """
 
+# ---------- INFORME: JUGADORES QUE COMPLETARON LAS 6 LECCIONES ----------
+@app.route("/reporte_lecciones_completas")
+def reporte_lecciones_completas():
+    if not session.get("admin"):
+        return redirect(url_for("admin_login"))
+
+    conn = psycopg2.connect(DATABASE_URL)
+    cursor = conn.cursor()
+
+    # Solo jugadores con 6 lecciones aprobadas (nota 10)
+    cursor.execute("""
+        SELECT j.id, j.nombre, j.cedula, COUNT(l.leccion_numero) as lecciones_ok
+        FROM jugadores j
+        JOIN lecciones_aprobadas l ON l.jugador_id = j.id
+        WHERE l.nota = 10
+        GROUP BY j.id, j.nombre, j.cedula
+        HAVING COUNT(l.leccion_numero) = 6
+        ORDER BY j.nombre
+    """)
+    jugadores = cursor.fetchall()
+    conn.close()
+
+    html = f"""
+    <h2>Jugadores que completaron las 6 lecciones (10/10)</h2>
+    <p>Total: {len(jugadores)}</p>
+    <table border='1' cellpadding='6'>
+      <tr><th>ID</th><th>Nombre</th><th>Cédula</th><th>Lecciones aprobadas</th></tr>
+    """
+    for j in jugadores:
+        html += f"<tr><td>{j[0]}</td><td>{j[1]}</td><td>{j[2]}</td><td>{j[3]}</td></tr>"
+    html += "</table><br><a href='/admin/panel'>← Volver al panel</a>"
+    return html
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
