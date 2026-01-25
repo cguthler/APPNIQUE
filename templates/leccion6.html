@@ -1,0 +1,79 @@
+<div style="background:#1b263b;color:#ffff00;padding:25px;border-radius:12px;font-family:Segoe UI,system-ui,sans-serif;">
+  <h3>Lección 6: Saque de banda</h3>
+
+  <p>
+    «El saque de banda es la única juganza que permite iniciar con el balón en las manos, pero si la desperdicias regalas posesión y tiempo.» – Análisis de Mauricio Pochettino para CONMEBOL, 2023.
+  </p>
+  <p>
+    En el fútbol moderno el saque lateral se ha convertido en una poderosa arma de ataque: con movimientos pre-establecidos, sobre-cargas y pases al espacio se puede romper la primera línea de presión rival y generar ventajas inmediatas. El ejecutor debe tener los pies sobre la línea, ambas manos en el balón y lanzar por detrás de la cabeza con fuerza controlada; mientras tanto, el resto del equipo debe ofrecer opciones cercanas (apoyo seguro), medias (combinación) y profundas (desmarque en la espalda del lateral). A nivel defensivo, un saque mal planificado se convierte en contraataque: por eso los equipos de élite dedican minutos específicos cada semana a automatizar estos gestos. Recuerda: la regla impide golpear de nuevo el balón antes de que toque el césped, así que el receptor debe anticipar, controlar orientado y proteger hasta tener respaldo. Dominar este aparente “detalle” puede significar entre 8 y 12 posesiones extra por partido, un tesoro en competiciones cerradas.
+  </p>
+
+  <button class="btn" onclick="iniciarTest(6)">Iniciar test</button>
+  <div id="testArea"></div>
+  <div id="resultArea"></div>
+</div>
+
+<script>
+const preguntas = [
+  { pregunta: "¿Qué parte del cuerpo debe estar sobre la línea al sacar?", opciones: ["Pies", "Manos", "Cabeza", "Nada"], correcta: 0 },
+  { pregunta: "¿Con cuántas manos se debe lanzar el balón?", opciones: ["Una", "Ambas", "Con el pie", "Cualquiera"], correcta: 1 },
+  { pregunta: "¿Por dónde debe salir el balón lanzado?", opciones: ["Por delante de la cabeza", "Por detrás de la cabeza", "Por el costado", "Hacia abajo"], correcta: 1 },
+  { pregunta: "¿Puede el sacador tocar de nuevo el balón antes de que otro jugador lo toque?", opciones: ["Sí", "No", "Solo si es de su equipo", "Solo si es de cabeza"], correcta: 1 },
+  { pregunta: "¿Qué debe ofrecer el equipo atacante durante el saque?", opciones: ["Solo opción cercana", "Solo opción profunda", "Opciones cercanas, medias y profundas", "Nada"], correcta: 2 },
+  { pregunta: "¿Qué se busca con el saque rápido?", opciones: ["Perder tiempo", "Sorprender antes de que el rival se organice", "Hacer falta", "Nada"], correcta: 1 },
+  { pregunta: "¿Dónde debe controlar el receptor para evitar pérdidas?", opciones: ["Orientado al centro", "Orientado a banda con cuerpo protegiendo", "Hacia atrás", "De espaldas"], correcta: 1 },
+  { pregunta: "Un saque mal planificado suele derivar en:", opciones: ["Corner", "Contraataque rival", "Falta", "Penalty"], correcta: 1 },
+  { pregunta: "¿Cuántas posesiones extras puede generar un equipo que domina los saques de banda?", opciones: ["0-2", "3-5", "8-12", "Más de 20"], correcta: 2 },
+  { pregunta: "La clave para que el saque sea efectivo es:", opciones: ["Fuerza bruta", "Coordinación y automatismos", "Suerte", "Balón nuevo"], correcta: 1 }
+];
+
+let aciertos = 0;
+let index = 0;
+
+function iniciarTest() {
+  aciertos = 0;
+  index = 0;
+  mostrarPregunta();
+}
+
+function mostrarPregunta() {
+  if (index >= preguntas.length) { finalizar(); return; }
+  const p = preguntas[index];
+  let html = `<h4>Pregunta ${index + 1}/10</h4><p>${p.pregunta}</p>`;
+  p.opciones.forEach((op, i) => {
+    html += `<label><input type="radio" name="resp" value="${i}"> ${op}</label><br>`;
+  });
+  html += `<button onclick="verificar()">Siguiente</button>`;
+  document.getElementById("testArea").innerHTML = html;
+}
+
+function verificar() {
+  const sel = document.querySelector('input[name="resp"]:checked');
+  if (!sel) return alert("Selecciona una opción");
+  if (parseInt(sel.value) === preguntas[index].correcta) aciertos++;
+  index++;
+  mostrarPregunta();
+}
+
+async function finalizar() {
+  const total = preguntas.length;
+  if (aciertos === total) {
+    localStorage.setItem("leccion6", "aprobado");
+    fetch("/guardar_aprobacion_pg", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        jugador_id: window.jugadorIdReal || 1,
+        leccion_numero: 6,
+        nota: aciertos
+      })
+    });
+    document.getElementById("resultArea").innerHTML =
+      `<div class="alert alert-success">¡Aprobaste! Estás listo para jugar tu partido.</div>`;
+  } else {
+    document.getElementById("resultArea").innerHTML =
+      `<div class="alert alert-warning">Respondiste ${aciertos}/${total}. Necesitas 10/10 para aprobar.</div>`;
+    setTimeout(() => location.reload(), 3000);
+  }
+}
+</script>

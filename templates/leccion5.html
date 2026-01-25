@@ -1,0 +1,94 @@
+<div style="background:#1b263b;color:#ffff00;padding:25px;border-radius:12px;font-family:Segoe UI,system-ui,sans-serif;">
+  <h3>Lección 5: Presión tras pérdida</h3>
+
+  <p>
+    La presión tras pérdida es el primer acto defensivo y el último acto ofensivo: en tres segundos el balón debe estar otra vez bajo nuestro control o al menos lejos de la zona caliente. Obligamos al rival hacia la banda, cerramos líneas de pase con cuerpo y voz, y todos corren con la misma referencia: balón, espaldas de la defensa y compañeros. Si uno falla, el sistema colapsa; si todos aciertan, el estadio respira con nosotros.
+  </p>
+
+  <h4>Claves que marca el cuerpo técnico</h4>
+  <ul>
+    <li>Primer paso: sprint al balón.</li>
+    <li>Segundo paso: cerrar espacios interiores.</li>
+    <li>Tercer paso: comunicación constante (grito de “¡Presiona!”).</li>
+    <li>Cuarto paso: fuerza al rival hacia la banda.</li>
+    <li>Quinto paso: si no recuperas en 5 segundos, repliega ordenado.</li>
+  </ul>
+
+  <h4>Ejercicio práctico</h4>
+  <ol>
+    <li>Simula pérdida en campo reducido.</li>
+    <li>El equipo más cercano al balón activa la presión.</li>
+    <li>El resto cierra líneas de pase y empuja al rival a la banda.</li>
+    <li>Conteo en voz alta: “uno-dos-tres”.</li>
+    <li>Si no se recupera, retrocede 5 metros y compacta.</li>
+  </ol>
+
+  <button class="btn" onclick="iniciarTest(5)">Iniciar test</button>
+  <div id="testArea"></div>
+  <div id="resultArea"></div>
+</div>
+
+<script>
+const preguntas = [
+  { pregunta: "¿Cuántos segundos tiene el equipo para presionar tras la pérdida?", opciones: ["1", "3", "5", "10"], correcta: 1 },
+  { pregunta: "¿Qué se debe cerrar primero?", opciones: ["El balón", "Las líneas de pase", "El árbitro", "La banda"], correcta: 1 },
+  { pregunta: "¿Quién participa en la presión?", opciones: ["Solo el que perdió", "Todos", "Solo los defensas", "Solo los delanteros"], correcta: 1 },
+  { pregunta: "¿Hacia dónde se fuerza al rival?", opciones: ["Centro", "Banda", "Área propia", "Esquina"], correcta: 1 },
+  { pregunta: "¿Qué se evita principalmente?", opciones: ["Pase interior", "Saque de meta", "Falta", "Corner"], correcta: 0 },
+  { pregunta: "¿Qué tan importante es la comunicación vocal?", opciones: ["Nada", "Poco", "Muy", "Solo para el capitán"], correcta: 2 },
+  { pregunta: "Si no presionas, ¿qué ocurre?", opciones: ["Nada", "Contraataque rival", "Falta", "Gol automático"], correcta: 1 },
+  { pregunta: "¿Cómo se llama en inglés esta acción?", opciones: ["Offside", "Counter press", "Free kick", "Throw-in"], correcta: 1 },
+  { pregunta: "¿Qué se debe evitar al presionar?", opciones: ["Velocidad", "Desorganización", "Intensidad", "Coordinación"], correcta: 1 },
+  { pregunta: "Clave del éxito según los técnicos:", opciones: ["Suerte", "Actitud y coordinación", "Fuerza", "Individualidad"], correcta: 1 }
+];
+
+let aciertos = 0;
+let index = 0;
+
+function iniciarTest() {
+  aciertos = 0;
+  index = 0;
+  mostrarPregunta();
+}
+
+function mostrarPregunta() {
+  if (index >= preguntas.length) { finalizar(); return; }
+  const p = preguntas[index];
+  let html = `<h4>Pregunta ${index + 1}/10</h4><p>${p.pregunta}</p>`;
+  p.opciones.forEach((op, i) => {
+    html += `<label><input type="radio" name="resp" value="${i}"> ${op}</label><br>`;
+  });
+  html += `<button onclick="verificar()">Siguiente</button>`;
+  document.getElementById("testArea").innerHTML = html;
+}
+
+function verificar() {
+  const sel = document.querySelector('input[name="resp"]:checked');
+  if (!sel) return alert("Selecciona una opción");
+  if (parseInt(sel.value) === preguntas[index].correcta) aciertos++;
+  index++;
+  mostrarPregunta();
+}
+
+async function finalizar() {
+  const total = preguntas.length;
+  if (aciertos === total) {
+    localStorage.setItem("leccion5", "aprobado");
+    fetch("/guardar_aprobacion_pg", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        jugador_id: window.jugadorIdReal || 1,
+        leccion_numero: 5,
+        nota: aciertos
+      })
+    });
+    document.getElementById("resultArea").innerHTML =
+      `<div class="alert alert-success">¡Aprobaste! Estás listo para jugar tu partido.</div>`;
+  } else {
+    document.getElementById("resultArea").innerHTML =
+      `<div class="alert alert-warning">Respondiste ${aciertos}/${total}. Necesitas 10/10 para aprobar.</div>`;
+    setTimeout(() => location.reload(), 3000);
+  }
+}
+</script>
