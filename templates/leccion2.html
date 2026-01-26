@@ -69,27 +69,27 @@
 /* ==========  FUNCIONES GLOBALES  ========== */
 function volverAlModal() { location.reload(); }
 
-let preguntas = [], idx = 0, aciertos = 0, timer = null;
+let preguntasL2 = [], idxL2 = 0, aciertosL2 = 0, timerL2 = null;
 
 function corregir(){
   const sel = document.querySelector('input[name="opt"]:checked');
   if(!sel){ alert("Elegí una opción."); return; }
   clearInterval(timer);
-  if(parseInt(sel.value) === preguntas[idx].ok) aciertos++;
+  if(parseInt(sel.value) === preguntas[idxL2].ok) aciertos++;
   idx++;
   if(idx < 10){ mostrarPregunta(); } else { finalizar(); }
 }
 
 function finalizar(){
   const total = preguntas.length;
-  if(aciertos === total){
+  if(aciertosL2 === total){
     localStorage.setItem("modulo2","aprobado");
     document.getElementById('resultArea').innerHTML =
       `<div class="alert alert-success">¡Aprobaste! Ya dominás el pase interior.</div>`;
     fetch("/guardar_aprobacion", {
       method: "POST",
       headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({jugador_id:1, leccion_numero:2, nota:aciertos})
+      body: JSON.stringify({jugador_id:1, leccion_numero:2, nota:aciertosL2})
     });
     const btn = document.createElement('button');
     btn.className = 'btn btn-success mt-3';
@@ -121,12 +121,12 @@ function mostrarTest() {
     {q:"¿Qué define el pase interior además de la técnica?",opts:["La fuerza","El ritmo","La puntería","La velocidad"],ok:1}
   ];
 
-  idx = 0; aciertos = 0;
+  idxL2 = 0; aciertosL2 = 0;
   mostrarPregunta();
 }
 
 function mostrarPregunta(){
-  const p = preguntas[idx];
+  const p = preguntas[idxL2];
   let html = `<div class="timer-bar"><div class="timer-fill" style="width:100%"></div></div>
               <b>Pregunta ${idx+1}/10</b> – ${p.q}<br><small id="countdown">12s</small><div class="mt-2">`;
   p.opts.forEach((o,k)=> html += `
@@ -140,7 +140,7 @@ function mostrarPregunta(){
   let seg = 12;
   const bar = document.querySelector('.timer-fill');
   const txt = document.getElementById('countdown');
-  timer = setInterval(()=>{
+  timerL2 = setInterval(()=>{
     seg--;
     bar.style.width = (seg/12*100) + '%';
     txt.textContent = seg + 's';
