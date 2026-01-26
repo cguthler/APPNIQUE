@@ -57,7 +57,7 @@
 
   <!-- Botón para desplegar el test -->
   <div class="text-center mt-4">
-    <button class="btn-leer" onclick="mostrarTest()">Leído → Comenzar test</button>
+  <button class="btn-leer" onclick="iniciarLeccion()">Leído → Comenzar test</button>
   </div>
 
   <!-- Aquí se insertará el test más tarde -->
@@ -75,9 +75,9 @@ function corregir(){
   const sel = document.querySelector('input[name="opt"]:checked');
   if(!sel){ alert("Elegí una opción."); return; }
   clearInterval(timer);
-  if(parseInt(sel.value) === preguntas[idxL2].ok) aciertos++;
-  idx++;
-  if(idx < 10){ mostrarPregunta(); } else { finalizar(); }
+  if(parseInt(sel.value) === preguntas[idx].ok) aciertosL2++;
+  idxL2++;
+  if(idxL2 < 10){ mostrarPregunta(); } else { finalizar(); }
 }
 
 function finalizar(){
@@ -104,6 +104,12 @@ function finalizar(){
 }
 
 /* ==========  TEST  ========== */
+function iniciarLeccion() {
+  idx = 0;
+  aciertos = 0;
+  preguntas = [];
+  mostrarTest();
+}
 function mostrarTest() {
   document.querySelector('.btn-leer').style.display = 'none';
 
@@ -126,9 +132,9 @@ function mostrarTest() {
 }
 
 function mostrarPregunta(){
-  const p = preguntas[idxL2];
+  const p = preguntas[idx];
   let html = `<div class="timer-bar"><div class="timer-fill" style="width:100%"></div></div>
-              <b>Pregunta ${idx+1}/10</b> – ${p.q}<br><small id="countdown">12s</small><div class="mt-2">`;
+              <b>Pregunta ${idxL2+1}/10</b> – ${p.q}<br><small id="countdown">12s</small><div class="mt-2">`;
   p.opts.forEach((o,k)=> html += `
     <div class="form-check">
       <input class="form-check-input" type="radio" name="opt" id="o${k}" value="${k}">
