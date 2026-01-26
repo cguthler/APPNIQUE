@@ -108,6 +108,7 @@ def init_db():
             ALTER TABLE jugadores
             ADD COLUMN IF NOT EXISTS pdf_url TEXT;
         """)
+        
         # ✅ Tabla de aprobaciones
         cur.execute("""
             CREATE TABLE IF NOT EXISTS lecciones_aprobadas (
@@ -119,9 +120,25 @@ def init_db():
                 UNIQUE (jugador_id, leccion_numero)
             );
         """)
+
+        # ✅ Asegurar restricción única si no existe
+        cur.execute("""
+            DO $$
+            BEGIN
+                IF NOT EXISTS (
+                    SELECT 1 FROM pg_constraint
+                    WHERE conname = 'unique_jugador_leccion'
+                ) THEN
+                    ALTER TABLE lecciones_aprobadas
+                    ADD CONSTRAINT unique_jugador_leccion
+                    UNIQUE (jugador_id, leccion_numero);
+                END IF;
+            END $$;
+        """)
+        
     # <-- aquí termina el WITH
     conn.commit()
-    conn.close()     
+    conn.close()
 
 @app.route("/admin/panel")
 def admin_panel():
