@@ -140,8 +140,7 @@
 
   function timeOut(){ alert("Se acabó el tiempo. Volvé a intentarlo."); volverAlModal(); }
 
- 
-async function finalizar() {
+ async function finalizar() {
   const total = preguntas.length;
   if (aciertos === total) {
     localStorage.setItem("modulo1", "aprobado");
@@ -153,25 +152,25 @@ async function finalizar() {
     }
 
     const payload = {
-      jugador_id: jugadorId,
+      jugador_id:     jugadorId,
       leccion_numero: 1,
-      nota: aciertos
+      nota:           aciertos
     };
 
     try {
       const res = await fetch("/guardar_aprobacion_pg", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-        credentials: "include"        // ←←←← cookie de sesión
+        method:  "POST",
+        headers: {"Content-Type": "application/json"},
+        body:    JSON.stringify(payload),
+        credentials: "include"        // ← cookie
       });
 
-      if (!res.ok) throw new Error("Error al guardar");
+      if (!res.ok) throw new Error("Error HTTP " + res.status);
 
       const data = await res.json();
-      if (data.status !== "ok") throw new Error(data.msg || "Error desconocido");
+      if (data.status !== "ok") throw new Error(data.msg || "Falló guardar");
 
-      // Todo bien → mostramos mensaje y botón de siguiente lección
+      // Todo bien → mostrar resultado
       document.getElementById('resultArea').innerHTML =
         `<div class="alert alert-success">¡Aprobaste! Estás listo para jugar tu partido.</div>`;
 
@@ -182,7 +181,8 @@ async function finalizar() {
       document.getElementById('resultArea').appendChild(btnSiguiente);
 
     } catch (e) {
-      alert("No se pudo guardar la aprobación: " + e.message);
+      console.error(e);
+      alert("No se pudo guardar la nota: " + e.message);
     }
 
   } else {
@@ -191,6 +191,8 @@ async function finalizar() {
     setTimeout(() => volverAlModal(), 3000);
   }
 }
+
+
 
   /* ---------- REGISTRO ---------- */
   document.getElementById('btnRegistrar').addEventListener('click', async () => {
