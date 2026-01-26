@@ -121,7 +121,7 @@ def init_db():
         """)
     # <-- aquí termina el WITH
     conn.commit()
-    conn.close()      
+    conn.close()     
 
 @app.route("/admin/panel")
 def admin_panel():
