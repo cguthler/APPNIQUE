@@ -148,10 +148,14 @@ def admin_login():
 # ---------- GUARDAR APROBACIÓN (PostgreSQL) ----------
 @app.route("/guardar_aprobacion_pg", methods=["POST"])
 def guardar_aprobacion_pg():
-    data = request.get_json()
+    data = request.get_json(force=True)          # ← permite JSON sin Content-Type explícito
     jugador_id = data.get("jugador_id")
     leccion_numero = data.get("leccion_numero")
     nota = data.get("nota")
+
+    # Validación rápida
+    if not all([jugador_id, leccion_numero, nota]):
+        return {"status": "error", "msg": "Faltan campos"}, 400
 
     conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
@@ -169,11 +173,14 @@ def guardar_aprobacion_pg():
         conn.commit()
     except Exception as e:
         conn.rollback()
+        app.logger.exception("Error al guardar aprobación")  # ← traza completa en logs
         return {"status": "error", "msg": str(e)}, 500
     finally:
         conn.close()
 
     return {"status": "ok"}, 200
+
+
 @app.route("/subir_pdf/<int:jugador_id>", methods=["POST"])
 def subir_pdf(jugador_id):
     # 1. sólo admin puede subir

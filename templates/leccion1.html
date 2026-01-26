@@ -140,19 +140,57 @@
 
   function timeOut(){ alert("Se acabó el tiempo. Volvé a intentarlo."); volverAlModal(); }
 
-  function finalizar(){
-    const total = preguntas.length;
-    if(aciertos === total){
-      localStorage.setItem("modulo1","aprobado");
+ 
+async function finalizar() {
+  const total = preguntas.length;
+  if (aciertos === total) {
+    localStorage.setItem("modulo1", "aprobado");
+
+    const jugadorId = window.jugadorIdReal;   // viene de buscarYAbrirTest()
+    if (!jugadorId) {
+      alert("No se encontró el id del jugador");
+      return;
+    }
+
+    const payload = {
+      jugador_id: jugadorId,
+      leccion_numero: 1,
+      nota: aciertos
+    };
+
+    try {
+      const res = await fetch("/guardar_aprobacion_pg", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        credentials: "include"        // ←←←← cookie de sesión
+      });
+
+      if (!res.ok) throw new Error("Error al guardar");
+
+      const data = await res.json();
+      if (data.status !== "ok") throw new Error(data.msg || "Error desconocido");
+
+      // Todo bien → mostramos mensaje y botón de siguiente lección
       document.getElementById('resultArea').innerHTML =
         `<div class="alert alert-success">¡Aprobaste! Estás listo para jugar tu partido.</div>`;
-      document.getElementById('registroFinal').style.display = 'block';
-    }else{
-      document.getElementById('resultArea').innerHTML =
-        `<div class="alert alert-warning">Respondiste ${aciertos}/${total}. Necesitas 10/10 para aprobar.</div>`;
-      setTimeout(()=> volverAlModal(), 3000);
+
+      const btnSiguiente = document.createElement('button');
+      btnSiguiente.className = 'btn btn-success mt-3';
+      btnSiguiente.textContent = 'Ver siguiente lección →';
+      btnSiguiente.onclick = () => abrirLeccionDentro(2);
+      document.getElementById('resultArea').appendChild(btnSiguiente);
+
+    } catch (e) {
+      alert("No se pudo guardar la aprobación: " + e.message);
     }
+
+  } else {
+    document.getElementById('resultArea').innerHTML =
+      `<div class="alert alert-warning">Respondiste ${aciertos}/${total}. Necesitas 10/10 para aprobar.</div>`;
+    setTimeout(() => volverAlModal(), 3000);
   }
+}
 
   /* ---------- REGISTRO ---------- */
   document.getElementById('btnRegistrar').addEventListener('click', async () => {
