@@ -1090,7 +1090,35 @@ def reporte_lecciones_completas():
         GROUP BY j.id, j.nombre, j.cedula
         HAVING COUNT(l.leccion_numero) = 6
         ORDER BY j.nombre
+    """)# ... tus rutas anteriores ...
+
+
+# ---------- VERIFICAR APROBACIONES (debug) ----------
+@app.route("/ver_lecciones")
+def ver_lecciones():
+    conn = psycopg2.connect(DATABASE_URL)
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT j.nombre, l.leccion_numero, l.fecha_aprobado, l.nota
+        FROM lecciones_aprobadas l
+        JOIN jugadores j ON j.id = l.jugador_id
+        ORDER BY l.fecha_aprobado DESC
     """)
+    rows = cursor.fetchall()
+    conn.close()
+
+    html = "<h2>Lecciones Aprobadas</h2><table border='1' cellpadding='6'>"
+    html += "<tr><th>Jugador</th><th>Lección</th><th>Fecha</th><th>Nota</th></tr>"
+    for row in rows:
+        html += f"<tr><td>{row[0]}</td><td>{row[1]}</td><td>{row[2]}</td><td>{row[3]}/10</td></tr>"
+    html += "</table>"
+    return html
+
+
+# ---------- GUARDAR APROBACIÓN (Aiven) ----------
+@app.route("/guardar_aprobacion", methods=["POST"])
+def guardar_aprobacion():
+    ... (lo que ya tenías)
     jugadores = cursor.fetchall()
     conn.close()
 
@@ -1104,5 +1132,7 @@ def reporte_lecciones_completas():
         html += f"<tr><td>{j[0]}</td><td>{j[1]}</td><td>{j[2]}</td><td>{j[3]}</td></tr>"
     html += "</table><br><a href='/admin/panel'>← Volver al panel</a>"
     return html
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
