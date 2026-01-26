@@ -82,7 +82,7 @@ function corregir(){
 
 function finalizar(){
   const total = preguntas.length;
-  if(aciertosL2 === total){
+  if(aciertos === total){
     localStorage.setItem("modulo2","aprobado");
     document.getElementById('resultArea').innerHTML =
       `<div class="alert alert-success">¡Aprobaste! Ya dominás el pase interior.</div>`;
