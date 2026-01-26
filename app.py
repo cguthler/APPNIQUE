@@ -1115,24 +1115,5 @@ def ver_lecciones():
     return html
 
 
-# ---------- GUARDAR APROBACIÓN (Aiven) ----------
-@app.route("/guardar_aprobacion", methods=["POST"])
-def guardar_aprobacion():
-    ... (lo que ya tenías)
-    jugadores = cursor.fetchall()
-    conn.close()
-
-    html = f"""
-    <h2>Jugadores que completaron las 6 lecciones (10/10)</h2>
-    <p>Total: {len(jugadores)}</p>
-    <table border='1' cellpadding='6'>
-      <tr><th>ID</th><th>Nombre</th><th>Cédula</th><th>Lecciones aprobadas</th></tr>
-    """
-    for j in jugadores:
-        html += f"<tr><td>{j[0]}</td><td>{j[1]}</td><td>{j[2]}</td><td>{j[3]}</td></tr>"
-    html += "</table><br><a href='/admin/panel'>← Volver al panel</a>"
-    return html
-
-
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
