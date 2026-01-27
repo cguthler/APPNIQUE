@@ -1,4 +1,4 @@
-# ---------------  app.py (Flask + Admin + PDF) ---------------
+# ---------------  app.py (Flask + Admin + PDF)  ---------------
 from flask import (
     Flask, render_template_string, request, redirect, url_for,
     send_from_directory, session, jsonify
@@ -246,6 +246,26 @@ def api_jugadores():
     conn.close()
     return {"jugadores": [{"id": r[0], "nombre": r[1], "cedula": r[2]} for r in rows]}
 
+# ---------- API: OBTENER PROGRESO DEL JUGADOR ----------
+@app.route("/api/progreso/<int:jugador_id>")
+def api_progreso(jugador_id):
+    conn = psycopg2.connect(DATABASE_URL)
+    cursor = conn.cursor()
+    
+    # Obtener la última lección aprobada con nota 10
+    cursor.execute(
+        "SELECT MAX(leccion_numero) FROM lecciones_aprobadas WHERE jugador_id = %s AND nota = 10",
+        (jugador_id,)
+    )
+    resultado = cursor.fetchone()[0]
+    conn.close()
+    
+    return {
+        "jugador_id": jugador_id,
+        "ultima_aprobada": resultado or 0,  # 0 si no tiene ninguna
+        "siguiente_leccion": (resultado or 0) + 1
+    }
+
 # ---------- API: guardar inscripción ----------
 @app.route("/api/inscripciones", methods=["POST"])
 def api_inscripciones():
@@ -417,10 +437,10 @@ INDEX_HTML = """
       <button class="btn" onclick="pedirClavePDF()">Cargar PDF</button>
       <button class="btn" onclick="abrirModal()">Formulario</button>
     </div>
-    <!-- Entrada para módulos -->
+    <!-- ✅ ENTRADA PARA MÓDULOS - FLUJO LINEAL CORREGIDO -->
     <div style="margin-top:15px;text-align:center">
-      <input type="text" id="cedulaTest" placeholder="Ingresa tu cédula" maxlength="20" style="padding:6px;width:200px;">
-      <button class="btn btn-sm btn-success" onclick="buscarYAbrirTest()">Módulos</button>
+      <input type="text" id="cedulaModulos" placeholder="Ingresa tu cédula" maxlength="20" style="padding:6px;width:200px;">
+      <button class="btn" style="background:#28a745;" onclick="iniciarModulos()">Módulos</button>
     </div>
   </div>
 
@@ -434,8 +454,8 @@ INDEX_HTML = """
           <strong>{{ j[1]|e }}</strong>
           <span>{{ j[2]|e }} • {{ j[3]|e }}</span>
           <span>G:{{ j[4] }} • A:{{ j[5] }}</span>
-          {% if j[7] %}
-            <a href="{{ j[7] }}" download="{{ j[1] | replace(' ', '_') }}_acta.pdf" style="color:#ffff80;font-size:13px;">📄 Descargar PDF</a>
+          {% if j[8] %}
+            <a href="{{ j[8] }}" download="{{ j[1] | replace(' ', '_') }}_acta.pdf" style="color:#ffff80;font-size:13px;">📄 Descargar PDF</a>
           {% else %}
             <span style="font-size:12px;color:#aaa;">Sin PDF</span>
           {% endif %}
@@ -453,28 +473,28 @@ INDEX_HTML = """
       Niquee Fútbol Club nació en 2017 en Guayaquil con la filosofía de adoración a Dios, juego limpio y trabajo en equipo.
       Participamos en ligas barriales y torneos locales. ¡Buscamos talento, honestidad y lealtad!<br>
       Entrenamientos: lun/mié/vie 18:00-20:00 | Cancha: sintéticas fútbol Garzota samanes<br>
-      Redes: <a href="https://www.facebook.com/share/1CWH1PEHMU/" target="_blank" style="color:#ffff80">Facebook</a>
+      Redes: <a href="https://www.facebook.com/share/1CWH1PEHMU/ " target="_blank" style="color:#ffff80">Facebook</a>
     </p>
   </div>
 
   <!-- Modal PDF -->
-<div id="pdfModal" class="ventana modal">
-  <span style="float:right;cursor:pointer;" onclick="this.parentElement.style.display='none'">&times;</span>
-  <h3>Subir acta PDF del jugador</h3>
-  <form id="pdfForm" enctype="multipart/form-data">
-    <label>Seleccione jugador:</label>
-    <select id="pdfJugador" required>
-      {% for j in jugadores %}
-        <option value="{{ j[0] }}">{{ j[1] }}</option>
-      {% endfor %}
-    </select>
+  <div id="pdfModal" class="ventana modal">
+    <span style="float:right;cursor:pointer;" onclick="this.parentElement.style.display='none'">&times;</span>
+    <h3>Subir acta PDF del jugador</h3>
+    <form id="pdfForm" enctype="multipart/form-data">
+      <label>Seleccione jugador:</label>
+      <select id="pdfJugador" required>
+        {% for j in jugadores %}
+          <option value="{{ j[0] }}">{{ j[1] }}</option>
+        {% endfor %}
+      </select>
 
-    <label>Archivo PDF (máx 10 MB):</label>
-    <input type="file" name="pdf" accept=".pdf" required>
+      <label>Archivo PDF (máx 10 MB):</label>
+      <input type="file" name="pdf" accept=".pdf" required>
 
-    <button type="submit" class="btn">Subir PDF</button>
-  </form>
-</div>
+      <button type="submit" class="btn">Subir PDF</button>
+    </form>
+  </div>
 
   <!-- Modal Inscripción -->
   <div id="modalInscripcion" class="ventana modal">
@@ -507,7 +527,7 @@ INDEX_HTML = """
   <footer>
     @transguthler&asociados • fonos 593-958787986 / 593-992123592<br>
     cguthler@hotmail.com •
-    <a href="https://www.facebook.com/share/1CWH1PEHMU/" target="_blank" style="color:#ffff80">Facebook</a><br>
+    <a href="https://www.facebook.com/share/1CWH1PEHMU/ " target="_blank" style="color:#ffff80">Facebook</a><br>
     Guayaquil – Ecuador
   </footer>
 
@@ -597,169 +617,112 @@ INDEX_HTML = """
       cerrarModal();
     }
 
-    /* ---------- FUNCIÓN: BUSCAR Y ABRIR TEST ---------- */
-    async function buscarYAbrirTest() {
-      const cedula = document.getElementById('cedulaTest').value.trim();
-      if (!cedula) { alert("Ingresa tu cédula"); return; }
+    /* ========== FLUJO LINEAL DE MÓDULOS CORREGIDO ========== */
+    let jugadorActualId = null;
+    let leccionActualNumero = 1;
 
-      const res = await fetch('/api/jugadores');
-      const data = await res.json();
-      const jugador = data.jugadores.find(j => j.cedula === cedula);
+    // ✅ FUNCIÓN PRINCIPAL: Validar cédula y empezar donde corresponda
+    async function iniciarModulos() {
+      const cedula = document.getElementById('cedulaModulos').value.trim();
+      if (!cedula) { 
+        alert("Ingresa tu cédula"); 
+        return; 
+      }
 
-      if (!jugador) { alert("No estás registrado. Regístrate primero."); return; }
+      try {
+        // 1. Buscar jugador
+        const res = await fetch('/api/jugadores');
+        const data = await res.json();
+        const jugador = data.jugadores.find(j => j.cedula === cedula);
 
-      window.jugadorIdReal = jugador.id;
-      abrirLeccionDentro(1);
+        if (!jugador) { 
+          alert("❌ No estás registrado. Contacta al administrador."); 
+          return; 
+        }
+
+        jugadorActualId = jugador.id;
+        
+        // 2. Buscar última lección aprobada
+        const resProgreso = await fetch(`/api/progreso/${jugador.id}`);
+        const progreso = await resProgreso.json();
+        
+        // 3. Determinar siguiente lección (1 si no tiene ninguna)
+        const ultimaAprobada = progreso.ultima_aprobada || 0;
+        leccionActualNumero = ultimaAprobada + 1;
+        
+        if (leccionActualNumero > 6) {
+          alert("🎉 ¡Felicidades! Ya completaste todas las lecciones disponibles.");
+          return;
+        }
+        
+        // 4. Abrir directamente esa lección (SIN menú intermedio)
+        abrirLeccion(leccionActualNumero);
+        
+      } catch (err) {
+        console.error(err);
+        alert("Error al cargar. Intenta de nuevo.");
+      }
     }
 
-    /* ---------- VALIDACIÓN SUBIDA PDF ---------- */
-    document.getElementById('pdfForm').addEventListener('submit', function (e) {
-      e.preventDefault();
-      const file = this.pdf.files[0];
-      if (!file) { alert("Selecciona un archivo."); return; }
-      if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
-        alert("Solo se permite PDF.");
-        return;
-      }
-      if (file.size > 10 * 1024 * 1024) {
-        alert("El archivo no puede superar 10 MB.");
-        return;
-      }
-
-      const id = document.getElementById('pdfJugador').value;
-      const fd = new FormData();
-      fd.append('pdf', file);
-      fetch('/subir_pdf/' + encodeURIComponent(id), {
-        method: 'POST',
-        body: fd,
-        credentials: 'include'
-      })
-      .then(() => location.reload())
-      .catch(() => alert('Error al subir'));
-    });
-  </script>
-
-  <!-- Modal Inscripción -->
-  <div id="modalInscripcion" class="ventana" style="display:none; position:fixed; top:10%; left:50%; transform:translateX(-50%); z-index:9999; max-width:480px; width:90%;">
-    <span style="float:right;cursor:pointer;" onclick="cerrarModal()">&times;</span>
-  
- <h3>Formulario de Inscripción</h3>
-<form id="formInscripcion" onsubmit="guardarInscripcion(event)">
-  <label>Nombres completos:</label>
-  <input type="text" id="nombres" list="listaJugadores" placeholder="Escribe para ver jugadores" required autocomplete="off">
-  
-  <label>Cédula de ciudadanía:</label>
-  <input type="text" id="cedula" pattern="[0-9]+" maxlength="20" placeholder="Ingrese su cédula" required>
-  <datalist id="listaJugadores"></datalist>
-
-  <label>Año de nacimiento:</label>
-  <input type="number" id="anio" min="1900" max="2100" required>
-
-  <label>Torneo:</label>
-  <select id="torneo" required>
-    <option value="">-- Seleccione --</option>
-    <option>Liga Futbol Fest</option>
-    <option>Liga Internacional World Cup 2026</option>
-    <option>Liga Samanes</option>
-    <option>Liga Miraflores</option>
-    <option>Liga Mucho Lote</option>
-    <option>Duran Amateur League</option>
-    <option>Otros</option>
-  </select>
-
-  <button type="submit" class="btn" style="width:100%; margin-top:15px;">Registrar</button>
-</form> </div>
-<!-- cierra modalInscripcion -->
-
-<!-- Modal Módulo -->
-<div id="moduloModal" class="ventana modulo-lecciones" style="display:none;position:fixed;top:10%;left:50%;transform:translateX(-50%);z-index:9999;max-width:800px;width:90%;"></div>
-
-<script>
-/* ---------- SISTEMA DE LECCIONES (10 LECCIONES) ---------- */
-const PASS_MODULO = "futbol2025";
-const TITULOS_LECCIONES = [
-  'Fundamentos y reglas',
-  'Pase interior', 
-  'Conducción',
-  'Control orientado',
-  'Presión tras pérdida',
-  'Saque de banda',
-  'Corner a favor',
-  'Corner en contra',
-  'Posesión y descanso',
-  'Fair Play y actitud'
-];
-
-function abrirModulo(){
-  let overlay = document.getElementById('overlayModulos');
-  if(!overlay){
-    overlay = document.createElement('div');
-    overlay.id = 'overlayModulos';
-    overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,.75); display:flex; align-items:center; justify-content:center; z-index:9999;';
-    
-    // Generar botones de lecciones
-    let botonesHTML = '';
-    for(let i = 0; i < 10; i++){
-      const num = i + 1;
-      // Las primeras 6 disponibles, resto próximamente
-      const disponible = num <= 6;
-      const color = disponible ? '#415a77' : '#333';
-      const cursor = disponible ? 'pointer' : 'not-allowed';
-      const onclick = disponible 
-        ? 'onclick="abrirLeccionDentro(' + num + '); return false;"' 
-        : 'onclick="alert(\'Lección ' + num + ' disponible próximamente\'); return false;"';
-      const icono = disponible ? '' : ' 🔒';
+    // ✅ ABRIR LECCIÓN ESPECÍFICA
+    function abrirLeccion(n) {
+      window.leccionActual = n;
       
-      botonesHTML += '<a href="#" style="display:block; padding:12px; margin:8px 0; background:' + color + '; color:#ffff00; text-decoration:none; border-radius:8px; cursor:' + cursor + ';" ' + onclick + '>Lección ' + num + ': ' + TITULOS_LECCIONES[i] + icono + '</a>';
-    }
-    
-    overlay.innerHTML = '<div style="background:#1b263b; color:#ffff00; border-radius:12px; padding:25px 30px; max-width:480px; width:90%; max-height:80vh; overflow-y:auto; box-shadow:0 8px 30px rgba(0,0,0,.6);"><span style="float:right;cursor:pointer;font-size:24px;" onclick="cerrarModulo()">&times;</span><h3>Lecciones del Módulo</h3><div style="margin-top:15px;">' + botonesHTML + '</div><button style="margin-top:20px; padding:10px 20px; background:#6c757d; color:#fff; border:none; border-radius:5px; cursor:pointer;" onclick="cerrarModulo()">Cerrar</button></div>';
-    
-    document.body.appendChild(overlay);
-    overlay.addEventListener('click', function(e){ if(e.target === overlay) cerrarModulo(); });
-    document.addEventListener('keydown', function(e){ if(e.key === 'Escape') cerrarModulo(); });
-  }
-  overlay.style.display = 'flex';
-}
-
-function cerrarModulo(){
-  const m = document.getElementById('overlayModulos');
-  if(m) m.style.display = 'none';
-}
-
-function abrirLeccionDentro(n){
-  // GUARDAR la lección actual (IMPORTANTE)
-  window.leccionActual = n;
-  
-  fetch("/leccion/" + n)
-    .then(function(r) { return r.text(); })
-    .then(function(html) {
-      const modal = document.getElementById('moduloModal');
-      modal.innerHTML = html;
-
-      // EJECUTAR SCRIPTS INSERTADOS
-      const scripts = modal.querySelectorAll('script');
-      scripts.forEach(function(oldScript) {
-        const newScript = document.createElement('script');
-        Array.from(oldScript.attributes).forEach(function(attr) {
-          newScript.setAttribute(attr.name, attr.value);
+      fetch("/leccion/" + n)
+        .then(r => {
+          if (!r.ok) throw new Error('Lección no encontrada');
+          return r.text();
+        })
+        .then(html => {
+          // Crear modal si no existe
+          let modal = document.getElementById('modalLeccion');
+          if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'modalLeccion';
+            modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;overflow-y:auto;padding:20px;';
+            document.body.appendChild(modal);
+          }
+          
+          modal.innerHTML = html;
+          modal.style.display = 'block';
+          document.body.style.overflow = 'hidden';
+          
+          // Ejecutar scripts de la lección
+          const scripts = modal.querySelectorAll('script');
+          scripts.forEach(oldScript => {
+            const newScript = document.createElement('script');
+            Array.from(oldScript.attributes).forEach(attr => {
+              newScript.setAttribute(attr.name, attr.value);
+            });
+            newScript.textContent = oldScript.textContent;
+            oldScript.parentNode.replaceChild(newScript, oldScript);
+          });
+        })
+        .catch(err => {
+          alert('Error: ' + err.message);
         });
-        newScript.textContent = oldScript.textContent;
-        oldScript.parentNode.replaceChild(newScript, oldScript);
-      });
+    }
 
-      modal.style.display = 'block';
-      modal.scrollTop = 0;
-    })
-    .catch(function(err) {
-      alert('Error al cargar la lección: ' + err.message);
-    });
-}
+    // ✅ CERRAR LECCIÓN Y VOLVER A INICIO
+    function cerrarLeccion() {
+      const modal = document.getElementById('modalLeccion');
+      if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+      }
+    }
 
-function volverAlModal(){
-  location.reload();
-}
-</script>
+    // ✅ AVANZAR A SIGUIENTE LECCIÓN (llamado desde lección.html cuando aprueba)
+    function avanzarSiguienteLeccion() {
+      cerrarLeccion();
+      leccionActualNumero++;
+      if (leccionActualNumero <= 6) {
+        setTimeout(() => abrirLeccion(leccionActualNumero), 300);
+      } else {
+        alert("🎉 ¡Completaste el curso! Felicitaciones.");
+      }
+    }
+  </script>
 </body>
 </html>
 """
@@ -791,7 +754,7 @@ ADMIN_PANEL_HTML = """
 <div style="margin-bottom:8px;">
   <strong>{{ j[1] }}</strong> |
   <span>C.I. {{ j[2] }}</span> |
-  <a href="{{ j[7] }}" target="_blank">📄 Ver PDF</a>
+  <a href="{{ j[8] }}" target="_blank">📄 Ver PDF</a>
 
   <!-- EDITAR -->
   <form action="/editar/{{ j[0] }}" method="GET" style="display:inline">
