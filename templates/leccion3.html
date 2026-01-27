@@ -1,13 +1,24 @@
-<style>
-  body{background:#1b263b;color:#ffff00;font-family:Segoe UI;margin:0;padding:20px}
-  h2{color:#00ff00;text-align:center}
-  .card{background:#415a77;border-radius:8px;padding:15px;margin:10px 0}
-  .btn{background:#00ff00;color:#1b263b;border:none;padding:8px 12px;border-radius:6px;cursor:pointer}
-  .btn:hover{background:#ffff00}
-  .hidden{display:none}
-  .alert-success{color:#00ff00}
-  .alert-warning{color:#ffcc00}
-</style>
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Lección 3 – Conducción del balón</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    body{background:#1b263b;color:#ffff00;font-family:Segoe UI;margin:0;padding:20px}
+    h2{color:#00ff00;text-align:center}
+    .card{background:#415a77;border-radius:8px;padding:15px;margin:10px 0}
+    .btn{background:#00ff00;color:#1b263b;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;font-weight:bold}
+    .btn:hover{background:#ffff00}
+    .hidden{display:none}
+    .alert-success{color:#00ff00;text-align:center;padding:20px;background:#28a745;border-radius:8px;margin-top:15px}
+    .alert-warning{color:#ffcc00;text-align:center;padding:20px;background:#ffc107;color:#000;border-radius:8px;margin-top:15px}
+    .opcion{margin:8px 0;padding:10px;background:#2a3f5f;border-radius:5px;cursor:pointer}
+    .opcion:hover{background:#3a5070}
+    .opcion input{margin-right:10px}
+  </style>
+</head>
+<body>
 
 <h2>Lección 3: Conducción del balón</h2>
 
@@ -35,56 +46,16 @@
 
 <script>
 const preguntas = [
-  {
-    q: "¿Dónde debes mirar mientras conduces?",
-    o: ["Al balón", "Al frente y periferia", "Al pie"],
-    r: 1
-  },
-  {
-    q: "¿Cada cuántos metros recomiendan tocar Bielsa y Guardiola?",
-    o: ["1-2 m", "3-4 m", "5-6 m"],
-    r: 0
-  },
-  {
-    q: "¿Qué parte del pie usas para máxima velocidad?",
-    o: ["Interior", "Exterior", "Planta"],
-    r: 1
-  },
-  {
-    q: "¿Dónde debe quedar tu cuerpo si te presionan?",
-    o: ["Al lado del balón", "Entre rival y balón", "Detrás del balón"],
-    r: 1
-  },
-  {
-    q: "¿Cuándo aceleras después de un toque?",
-    o: ["Antes de tocar", "Durante el toque", "Justo después"],
-    r: 2
-  },
-  {
-    q: "¿Qué haces justo antes de encontrarte con un rival?",
-    o: ["Aceleras", "Frenas medio paso", "Saltas"],
-    r: 1
-  },
-  {
-    q: "¿Cómo termina todo circuito de Guardiola?",
-    o: ["Regate", "Pase o tiro", "Túnel"],
-    r: 1
-  },
-  {
-    q: "¿Qué parte usas para girar rápidamente?",
-    o: ["Interior", "Exterior", "Talon"],
-    r: 0
-  },
-  {
-    q: "¿Qué usas como escudo mientras conduces?",
-    o: ["Solo el pie", "Cuerpo y brazo", "Solo la cabeza"],
-    r: 1
-  },
-  {
-    q: "¿Qué debes evitar mientras conduces?",
-    o: ["Tocar mucho", "Mirar al balón", "Proteger"],
-    r: 1
-  }
+  {q: "¿Dónde debes mirar mientras conduces?", o: ["Al balón", "Al frente y periferia", "Al pie"], r: 1},
+  {q: "¿Cada cuántos metros recomiendan tocar Bielsa y Guardiola?", o: ["1-2 m", "3-4 m", "5-6 m"], r: 0},
+  {q: "¿Qué parte del pie usas para máxima velocidad?", o: ["Interior", "Exterior", "Planta"], r: 1},
+  {q: "¿Dónde debe quedar tu cuerpo si te presionan?", o: ["Al lado del balón", "Entre rival y balón", "Detrás del balón"], r: 1},
+  {q: "¿Cuándo aceleras después de un toque?", o: ["Antes de tocar", "Durante el toque", "Justo después"], r: 2},
+  {q: "¿Qué haces justo antes de encontrarte con un rival?", o: ["Aceleras", "Frenas medio paso", "Saltas"], r: 1},
+  {q: "¿Cómo termina todo circuito de Guardiola?", o: ["Regate", "Pase o tiro", "Túnel"], r: 1},
+  {q: "¿Qué parte usas para girar rápidamente?", o: ["Interior", "Exterior", "Talón"], r: 0},
+  {q: "¿Qué usas como escudo mientras conduces?", o: ["Solo el pie", "Cuerpo y brazo", "Solo la cabeza"], r: 1},
+  {q: "¿Qué debes evitar mientras conduces?", o: ["Tocar mucho", "Mirar al balón", "Proteger"], r: 1}
 ];
 
 let indice = 0, aciertos = 0;
@@ -122,25 +93,91 @@ function verificar() {
   mostrarPregunta();
 }
 
-function finalizar() {
+async function finalizar() {
   const total = preguntas.length;
+  const resultArea = document.getElementById("resultArea");
+  
   if (aciertos >= 8) {
-    localStorage.setItem("modulo1", "aprobado");
-    fetch("/guardar_aprobacion_pg", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        jugador_id: window.jugadorIdReal || 1,
-        leccion_numero: 3,
-        nota: aciertos
-      })
-    });
-    document.getElementById("resultArea").innerHTML =
-      `<div class="alert-success">¡Aprobaste lección 3! Estás listo para el siguiente módulo.</div>`;
+    // ✅ OBTENER jugador_id DE LA URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const jugadorId = urlParams.get('jugador_id');
+    
+    if (!jugadorId) {
+      resultArea.innerHTML = `
+        <div class="alert-warning">
+          <h4>❌ Error</h4>
+          <p>No se encontró el ID del jugador. Cerrá y volvé a ingresar tu cédula.</p>
+        </div>
+      `;
+      return;
+    }
+    
+    // GUARDAR EN BASE DE DATOS
+    try {
+      const res = await fetch("/guardar_aprobacion_pg", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jugador_id: parseInt(jugadorId),
+          leccion_numero: 3,
+          nota: aciertos
+        })
+      });
+      
+      const data = await res.json();
+      
+      if (data.status === 'ok') {
+        // ✅ MOSTRAR ÉXITO Y BOTÓN PARA AVANZAR
+        resultArea.innerHTML = `
+          <div class="alert-success">
+            <h2>🎉 ¡Felicitaciones!</h2>
+            <p style="font-size:20px;">Aprobaste con ${aciertos}/${total}</p>
+            <p>Lección 3 completada correctamente.</p>
+            <button class="btn" style="font-size:18px;margin-top:15px;background:#00ff00;color:#1b263b;border:none;padding:12px 24px;border-radius:8px;cursor:pointer;" onclick="siguienteLeccion()">
+              Continuar a Lección 4 →
+            </button>
+          </div>
+        `;
+      } else {
+        throw new Error(data.msg || 'Error al guardar');
+      }
+    } catch (err) {
+      resultArea.innerHTML = `
+        <div class="alert-warning">
+          <h4>⚠️ Error al guardar</h4>
+          <p>${err.message}</p>
+          <button class="btn" onclick="location.reload()">Reintentar</button>
+        </div>
+      `;
+    }
+    
   } else {
-    document.getElementById("resultArea").innerHTML =
-      `<div class="alert-warning">Respondiste ${aciertos}/${total}. Necesitas 8/10 para aprobar.</div>`;
-    setTimeout(() => location.reload(), 3000);
+    // ❌ NO APROBÓ
+    resultArea.innerHTML = `
+      <div class="alert-warning">
+        <h3>No aprobaste</h3>
+        <p style="font-size:18px;">Obtuviste ${aciertos}/${total}</p>
+        <p>Necesitás 8/10 para aprobar.</p>
+        <button class="btn" style="background:#dc3545;color:white;margin-top:15px;" onclick="location.reload()">
+          ↻ Reintentar Lección
+        </button>
+      </div>
+    `;
+  }
+}
+
+// ✅ FUNCIÓN CLAVE: AVANZAR A SIGUIENTE LECCIÓN
+function siguienteLeccion() {
+  // Enviar mensaje al padre (app.py) para que abra la siguiente lección automáticamente
+  if (window.parent !== window) {
+    window.parent.postMessage({
+      tipo: 'leccion_aprobada',
+      leccion: 3,
+      nota: aciertos
+    }, '*');
   }
 }
 </script>
+
+</body>
+</html>

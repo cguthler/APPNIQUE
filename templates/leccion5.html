@@ -1,3 +1,23 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Lección 5 – Presión tras pérdida</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    body{background:#1b263b;color:#ffff00;padding:25px;font-family:Segoe UI,system-ui,sans-serif}
+    h3{color:#00ff00;margin-bottom:15px}
+    .card{background:#415a77;border-radius:12px;padding:15px;margin:10px 0}
+    .btn{background:#00ff00;color:#1b263b;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;font-weight:bold}
+    .btn:hover{background:#ffff00}
+    .alert-success{color:#00ff00;text-align:center;padding:20px;background:#28a745;border-radius:8px;margin-top:15px}
+    .alert-warning{color:#ffcc00;text-align:center;padding:20px;background:#ffc107;color:#000;border-radius:8px;margin-top:15px}
+    label{display:block;margin:6px 0;cursor:pointer}
+    input{margin-right:8px}
+  </style>
+</head>
+<body>
+
 <div style="background:#1b263b;color:#ffff00;padding:25px;border-radius:12px;font-family:Segoe UI,system-ui,sans-serif;">
   <h3>Lección 5: Presión tras pérdida</h3>
 
@@ -23,7 +43,7 @@
     <li>Si no se recupera, retrocede 5 metros y compacta.</li>
   </ol>
 
-  <button class="btn" onclick="iniciarTest(5)">Iniciar test</button>
+  <button class="btn" onclick="iniciarTest()">Iniciar test</button>
   <div id="testArea"></div>
   <div id="resultArea"></div>
 </div>
@@ -52,14 +72,15 @@ function iniciarTest() {
 }
 
 function mostrarPregunta() {
+  const area = document.getElementById("testArea");
   if (index >= preguntas.length) { finalizar(); return; }
   const p = preguntas[index];
   let html = `<h4>Pregunta ${index + 1}/10</h4><p>${p.pregunta}</p>`;
   p.opciones.forEach((op, i) => {
     html += `<label><input type="radio" name="resp" value="${i}"> ${op}</label><br>`;
   });
-  html += `<button onclick="verificar()">Siguiente</button>`;
-  document.getElementById("testArea").innerHTML = html;
+  html += `<button class="btn" onclick="verificar()">Siguiente</button>`;
+  area.innerHTML = html;
 }
 
 function verificar() {
@@ -72,23 +93,89 @@ function verificar() {
 
 async function finalizar() {
   const total = preguntas.length;
+  const resultArea = document.getElementById("resultArea");
+  
   if (aciertos === total) {
-    localStorage.setItem("leccion5", "aprobado");
-    fetch("/guardar_aprobacion_pg", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        jugador_id: window.jugadorIdReal || 1,
-        leccion_numero: 5,
-        nota: aciertos
-      })
-    });
-    document.getElementById("resultArea").innerHTML =
-      `<div class="alert alert-success">¡Aprobaste! Estás listo para jugar tu partido.</div>`;
+    // ✅ OBTENER jugador_id DE LA URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const jugadorId = urlParams.get('jugador_id');
+    
+    if (!jugadorId) {
+      resultArea.innerHTML = `
+        <div class="alert-warning">
+          <h4>❌ Error</h4>
+          <p>No se encontró el ID del jugador. Cerrá y volvé a ingresar tu cédula.</p>
+        </div>
+      `;
+      return;
+    }
+    
+    // GUARDAR EN BASE DE DATOS
+    try {
+      const res = await fetch("/guardar_aprobacion_pg", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jugador_id: parseInt(jugadorId),
+          leccion_numero: 5,
+          nota: aciertos
+        })
+      });
+      
+      const data = await res.json();
+      
+      if (data.status === 'ok') {
+        // ✅ MOSTRAR ÉXITO Y BOTÓN PARA AVANZAR
+        resultArea.innerHTML = `
+          <div class="alert-success">
+            <h2>🎉 ¡Felicitaciones!</h2>
+            <p style="font-size:20px;">Aprobaste con ${aciertos}/${total}</p>
+            <p>Lección 5 completada correctamente.</p>
+            <button class="btn" style="font-size:18px;margin-top:15px;background:#00ff00;color:#1b263b;border:none;padding:12px 24px;border-radius:8px;cursor:pointer;" onclick="siguienteLeccion()">
+              Continuar a Lección 6 →
+            </button>
+          </div>
+        `;
+      } else {
+        throw new Error(data.msg || 'Error al guardar');
+      }
+    } catch (err) {
+      resultArea.innerHTML = `
+        <div class="alert-warning">
+          <h4>⚠️ Error al guardar</h4>
+          <p>${err.message}</p>
+          <button class="btn" onclick="location.reload()">Reintentar</button>
+        </div>
+      `;
+    }
+    
   } else {
-    document.getElementById("resultArea").innerHTML =
-      `<div class="alert alert-warning">Respondiste ${aciertos}/${total}. Necesitas 10/10 para aprobar.</div>`;
-    setTimeout(() => location.reload(), 3000);
+    // ❌ NO APROBÓ
+    resultArea.innerHTML = `
+      <div class="alert-warning">
+        <h3>No aprobaste</h3>
+        <p style="font-size:18px;">Obtuviste ${aciertos}/${total}</p>
+        <p>Necesitás 10/10 para aprobar.</p>
+        <button class="btn" style="background:#dc3545;color:white;margin-top:15px;" onclick="location.reload()">
+          ↻ Reintentar Lección
+        </button>
+      </div>
+    `;
+  }
+}
+
+// ✅ FUNCIÓN CLAVE: AVANZAR A SIGUIENTE LECCIÓN
+function siguienteLeccion() {
+  // Enviar mensaje al padre (app.py) para que abra la siguiente lección automáticamente
+  if (window.parent !== window) {
+    window.parent.postMessage({
+      tipo: 'leccion_aprobada',
+      leccion: 5,
+      nota: aciertos
+    }, '*');
   }
 }
 </script>
+
+</body>
+</html>

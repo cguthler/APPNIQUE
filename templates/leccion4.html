@@ -1,13 +1,21 @@
-<style>
-  body{background:#1b263b;color:#ffff00;font-family:Segoe UI;margin:0;padding:20px}
-  h2{color:#00ff00;text-align:center}
-  .card{background:#415a77;border-radius:8px;padding:15px;margin:10px 0}
-  .btn{background:#00ff00;color:#1b263b;border:none;padding:8px 12px;border-radius:6px;cursor:pointer}
-  .btn:hover{background:#ffff00}
-  .hidden{display:none}
-  .alert-success{color:#00ff00}
-  .alert-warning{color:#ffcc00}
-</style>
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Lección 4 – Control orientado</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    body{background:#1b263b;color:#ffff00;font-family:Segoe UI;margin:0;padding:20px}
+    h2{color:#00ff00;text-align:center}
+    .card{background:#415a77;border-radius:8px;padding:15px;margin:10px 0}
+    .btn{background:#00ff00;color:#1b263b;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;font-weight:bold}
+    .btn:hover{background:#ffff00}
+    .hidden{display:none}
+    .alert-success{color:#00ff00;text-align:center;padding:20px;background:#28a745;border-radius:8px;margin-top:15px}
+    .alert-warning{color:#ffcc00;text-align:center;padding:20px;background:#ffc107;color:#000;border-radius:8px;margin-top:15px}
+  </style>
+</head>
+<body>
 
 <h2>Lección 4: Control orientado</h2>
 
@@ -37,56 +45,16 @@
 
 <script>
 const preguntas = [
-  {
-    q: "¿Qué dice Guardiola que debe lograr el control?",
-    o: ["Quedarse quieto", "Que el partido siga a tu favor", "Invitar al contacto"],
-    r: 1
-  },
-  {
-    q: "Según Xavi, ¿cómo debes recibir?",
-    o: ["De frente al rival", "Medio girado", "Con la espalda"],
-    r: 1
-  },
-  {
-    q: "¿Qué distancia recomienda Lillo que mueva el balón?",
-    o: ["Un metro", "Tres metros", "Cinco metros"],
-    r: 0
-  },
-  {
-    q: "¿Dónde pones la pelota para protegerla?",
-    o: ["Al pie libre", "Al pie fuerte", "Entre ambos"],
-    r: 0
-  },
-  {
-    q: "¿Qué hombro apuntas a portería si vienes por la izquierda?",
-    o: ["Izquierdo", "Derecho", "Cualquiera"],
-    r: 1
-  },
-  {
-    q: "¿Dónde miras justo antes de recibir?",
-    o: ["Al balón", "Por encima del hombro", "Al césped"],
-    r: 1
-  },
-  {
-    q: "¿Qué pies usas para suavizar y luego abrir en un solo contacto?",
-    o: ["Interior luego exterior", "Exterior luego interior", "Planta y talón"],
-    r: 0
-  },
-  {
-    q: "¿Qué debes pensar al terminar el control?",
-    o: ["En el regate", "En el próximo pase", "En la celebración"],
-    r: 1
-  },
-  {
-    q: "¿Qué evitas al colocar bien el cuerpo?",
-    o: ["Invitar al contacto", "Hacer pases", "Correr"],
-    r: 0
-  },
-  {
-    q: "Según el método, ¿cuántos toques necesitas para orientarte y pasar?",
-    o: ["Uno", "Dos", "Tres"],
-    r: 1
-  }
+  {q: "¿Qué dice Guardiola que debe lograr el control?", o: ["Quedarse quieto", "Que el partido siga a tu favor", "Invitar al contacto"], r: 1},
+  {q: "Según Xavi, ¿cómo debes recibir?", o: ["De frente al rival", "Medio girado", "Con la espalda"], r: 1},
+  {q: "¿Qué distancia recomienda Lillo que mueva el balón?", o: ["Un metro", "Tres metros", "Cinco metros"], r: 0},
+  {q: "¿Dónde pones la pelota para protegerla?", o: ["Al pie libre", "Al pie fuerte", "Entre ambos"], r: 0},
+  {q: "¿Qué hombro apuntas a portería si vienes por la izquierda?", o: ["Izquierdo", "Derecho", "Cualquiera"], r: 1},
+  {q: "¿Dónde miras justo antes de recibir?", o: ["Al balón", "Por encima del hombro", "Al césped"], r: 1},
+  {q: "¿Qué pies usas para suavizar y luego abrir en un solo contacto?", o: ["Interior luego exterior", "Exterior luego interior", "Planta y talón"], r: 0},
+  {q: "¿Qué debes pensar al terminar el control?", o: ["En el regate", "En el próximo pase", "En la celebración"], r: 1},
+  {q: "¿Qué evitas al colocar bien el cuerpo?", o: ["Invitar al contacto", "Hacer pases", "Correr"], r: 0},
+  {q: "Según el método, ¿cuántos toques necesitas para orientarte y pasar?", o: ["Uno", "Dos", "Tres"], r: 1}
 ];
 
 let indice = 0, aciertos = 0;
@@ -124,25 +92,91 @@ function verificar() {
   mostrarPregunta();
 }
 
-function finalizar() {
+async function finalizar() {
   const total = preguntas.length;
+  const resultArea = document.getElementById("resultArea");
+  
   if (aciertos >= 8) {
-    localStorage.setItem("modulo1", "aprobado");
-    fetch("/guardar_aprobacion_pg", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        jugador_id: window.jugadorIdReal || 1,
-        leccion_numero: 4,
-        nota: aciertos
-      })
-    });
-    document.getElementById("resultArea").innerHTML =
-      `<div class="alert-success">¡Aprobaste lección 4! Estás listo para el siguiente módulo.</div>`;
+    // ✅ OBTENER jugador_id DE LA URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const jugadorId = urlParams.get('jugador_id');
+    
+    if (!jugadorId) {
+      resultArea.innerHTML = `
+        <div class="alert-warning">
+          <h4>❌ Error</h4>
+          <p>No se encontró el ID del jugador. Cerrá y volvé a ingresar tu cédula.</p>
+        </div>
+      `;
+      return;
+    }
+    
+    // GUARDAR EN BASE DE DATOS
+    try {
+      const res = await fetch("/guardar_aprobacion_pg", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jugador_id: parseInt(jugadorId),
+          leccion_numero: 4,
+          nota: aciertos
+        })
+      });
+      
+      const data = await res.json();
+      
+      if (data.status === 'ok') {
+        // ✅ MOSTRAR ÉXITO Y BOTÓN PARA AVANZAR
+        resultArea.innerHTML = `
+          <div class="alert-success">
+            <h2>🎉 ¡Felicitaciones!</h2>
+            <p style="font-size:20px;">Aprobaste con ${aciertos}/${total}</p>
+            <p>Lección 4 completada correctamente.</p>
+            <button class="btn" style="font-size:18px;margin-top:15px;background:#00ff00;color:#1b263b;border:none;padding:12px 24px;border-radius:8px;cursor:pointer;" onclick="siguienteLeccion()">
+              Continuar a Lección 5 →
+            </button>
+          </div>
+        `;
+      } else {
+        throw new Error(data.msg || 'Error al guardar');
+      }
+    } catch (err) {
+      resultArea.innerHTML = `
+        <div class="alert-warning">
+          <h4>⚠️ Error al guardar</h4>
+          <p>${err.message}</p>
+          <button class="btn" onclick="location.reload()">Reintentar</button>
+        </div>
+      `;
+    }
+    
   } else {
-    document.getElementById("resultArea").innerHTML =
-      `<div class="alert-warning">Respondiste ${aciertos}/${total}. Necesitas 8/10 para aprobar.</div>`;
-    setTimeout(() => location.reload(), 3000);
+    // ❌ NO APROBÓ
+    resultArea.innerHTML = `
+      <div class="alert-warning">
+        <h3>No aprobaste</h3>
+        <p style="font-size:18px;">Obtuviste ${aciertos}/${total}</p>
+        <p>Necesitás 8/10 para aprobar.</p>
+        <button class="btn" style="background:#dc3545;color:white;margin-top:15px;" onclick="location.reload()">
+          ↻ Reintentar Lección
+        </button>
+      </div>
+    `;
+  }
+}
+
+// ✅ FUNCIÓN CLAVE: AVANZAR A SIGUIENTE LECCIÓN
+function siguienteLeccion() {
+  // Enviar mensaje al padre (app.py) para que abra la siguiente lección automáticamente
+  if (window.parent !== window) {
+    window.parent.postMessage({
+      tipo: 'leccion_aprobada',
+      leccion: 4,
+      nota: aciertos
+    }, '*');
   }
 }
 </script>
+
+</body>
+</html>

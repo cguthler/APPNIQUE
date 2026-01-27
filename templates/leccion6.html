@@ -1,3 +1,23 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Lección 6 – Saque de banda</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    body{background:#1b263b;color:#ffff00;padding:25px;font-family:Segoe UI,system-ui,sans-serif;margin:0}
+    h3{color:#00ff00;margin-bottom:15px}
+    .card{background:#415a77;border-radius:12px;padding:15px;margin:10px 0}
+    .btn{background:#00ff00;color:#1b263b;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;font-weight:bold}
+    .btn:hover{background:#ffff00}
+    label{display:block;margin:6px 0;cursor:pointer}
+    input{margin-right:8px}
+    .alert-success{color:#00ff00;text-align:center;padding:20px;background:#28a745;border-radius:8px;margin-top:15px}
+    .alert-warning{color:#ffcc00;text-align:center;padding:20px;background:#ffc107;color:#000;border-radius:8px;margin-top:15px}
+  </style>
+</head>
+<body>
+
 <div style="background:#1b263b;color:#ffff00;padding:25px;border-radius:12px;font-family:Segoe UI,system-ui,sans-serif;">
   <h3>Lección 6: Saque de banda</h3>
 
@@ -8,7 +28,7 @@
     En el fútbol moderno el saque lateral se ha convertido en una poderosa arma de ataque: con movimientos pre-establecidos, sobre-cargas y pases al espacio se puede romper la primera línea de presión rival y generar ventajas inmediatas. El ejecutor debe tener los pies sobre la línea, ambas manos en el balón y lanzar por detrás de la cabeza con fuerza controlada; mientras tanto, el resto del equipo debe ofrecer opciones cercanas (apoyo seguro), medias (combinación) y profundas (desmarque en la espalda del lateral). A nivel defensivo, un saque mal planificado se convierte en contraataque: por eso los equipos de élite dedican minutos específicos cada semana a automatizar estos gestos. Recuerda: la regla impide golpear de nuevo el balón antes de que toque el césped, así que el receptor debe anticipar, controlar orientado y proteger hasta tener respaldo. Dominar este aparente “detalle” puede significar entre 8 y 12 posesiones extra por partido, un tesoro en competiciones cerradas.
   </p>
 
-  <button class="btn" onclick="iniciarTest(6)">Iniciar test</button>
+  <button class="btn" onclick="iniciarTest()">Iniciar test</button>
   <div id="testArea"></div>
   <div id="resultArea"></div>
 </div>
@@ -43,7 +63,7 @@ function mostrarPregunta() {
   p.opciones.forEach((op, i) => {
     html += `<label><input type="radio" name="resp" value="${i}"> ${op}</label><br>`;
   });
-  html += `<button onclick="verificar()">Siguiente</button>`;
+  html += `<button class="btn" onclick="verificar()">Siguiente</button>`;
   document.getElementById("testArea").innerHTML = html;
 }
 
@@ -57,23 +77,89 @@ function verificar() {
 
 async function finalizar() {
   const total = preguntas.length;
+  const resultArea = document.getElementById("resultArea");
+  
   if (aciertos === total) {
-    localStorage.setItem("leccion6", "aprobado");
-    fetch("/guardar_aprobacion_pg", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        jugador_id: window.jugadorIdReal || 1,
-        leccion_numero: 6,
-        nota: aciertos
-      })
-    });
-    document.getElementById("resultArea").innerHTML =
-      `<div class="alert alert-success">¡Aprobaste! Estás listo para jugar tu partido.</div>`;
+    // ✅ OBTENER jugador_id DE LA URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const jugadorId = urlParams.get('jugador_id');
+    
+    if (!jugadorId) {
+      resultArea.innerHTML = `
+        <div class="alert-warning">
+          <h4>❌ Error</h4>
+          <p>No se encontró el ID del jugador. Cerrá y volvé a ingresar tu cédula.</p>
+        </div>
+      `;
+      return;
+    }
+    
+    // GUARDAR EN BASE DE DATOS
+    try {
+      const res = await fetch("/guardar_aprobacion_pg", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jugador_id: parseInt(jugadorId),
+          leccion_numero: 6,
+          nota: aciertos
+        })
+      });
+      
+      const data = await res.json();
+      
+      if (data.status === 'ok') {
+        // ✅ MOSTRAR ÉXITO Y BOTÓN PARA AVANZAR
+        resultArea.innerHTML = `
+          <div class="alert-success">
+            <h2>🎉 ¡Felicitaciones!</h2>
+            <p style="font-size:20px;">Aprobaste con ${aciertos}/${total}</p>
+            <p>Lección 6 completada correctamente.</p>
+            <button class="btn" style="font-size:18px;margin-top:15px;background:#00ff00;color:#1b263b;border:none;padding:12px 24px;border-radius:8px;cursor:pointer;" onclick="siguienteLeccion()">
+              🏆 Completar curso
+            </button>
+          </div>
+        `;
+      } else {
+        throw new Error(data.msg || 'Error al guardar');
+      }
+    } catch (err) {
+      resultArea.innerHTML = `
+        <div class="alert-warning">
+          <h4>⚠️ Error al guardar</h4>
+          <p>${err.message}</p>
+          <button class="btn" onclick="location.reload()">Reintentar</button>
+        </div>
+      `;
+    }
+    
   } else {
-    document.getElementById("resultArea").innerHTML =
-      `<div class="alert alert-warning">Respondiste ${aciertos}/${total}. Necesitas 10/10 para aprobar.</div>`;
-    setTimeout(() => location.reload(), 3000);
+    // ❌ NO APROBÓ
+    resultArea.innerHTML = `
+      <div class="alert-warning">
+        <h3>No aprobaste</h3>
+        <p style="font-size:18px;">Obtuviste ${aciertos}/${total}</p>
+        <p>Necesitás 10/10 para aprobar.</p>
+        <button class="btn" style="background:#dc3545;color:white;margin-top:15px;" onclick="location.reload()">
+          ↻ Reintentar Lección
+        </button>
+      </div>
+    `;
+  }
+}
+
+// ✅ FUNCIÓN CLAVE: AVANZAR A SIGUIENTE LECCIÓN
+function siguienteLeccion() {
+  // Enviar mensaje al padre (app.py) para que abra la siguiente lección automáticamente
+  if (window.parent !== window) {
+    window.parent.postMessage({
+      tipo: 'leccion_aprobada',
+      leccion: 6,
+      nota: aciertos
+    }, '*');
   }
 }
 </script>
+
+</body>
+</html>
