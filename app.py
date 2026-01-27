@@ -617,11 +617,11 @@ INDEX_HTML = """
       cerrarModal();
     }
 
-    /* ========== FLUJO LINEAL DE MÓDULOS CORREGIDO ========== */
+    /* ========== FLUJO LINEAL DE MÓDULOS CORREGIDO CON IFRAME ========== */
     let jugadorActualId = null;
     let leccionActualNumero = 1;
 
-    // ✅ FUNCIÓN PRINCIPAL: Validar cédula y empezar donde corresponda
+       // ✅ FUNCIÓN PRINCIPAL: Validar cédula y empezar donde corresponda
     async function iniciarModulos() {
       const cedula = document.getElementById('cedulaModulos').value.trim();
       if (!cedula) { 
@@ -664,43 +664,33 @@ INDEX_HTML = """
       }
     }
 
-    // ✅ ABRIR LECCIÓN ESPECÍFICA
+    // ✅ ABRIR LECCIÓN CON IFRAME (evita conflictos de variables)
     function abrirLeccion(n) {
       window.leccionActual = n;
       
-      fetch("/leccion/" + n)
-        .then(r => {
-          if (!r.ok) throw new Error('Lección no encontrada');
-          return r.text();
-        })
-        .then(html => {
-          // Crear modal si no existe
-          let modal = document.getElementById('modalLeccion');
-          if (!modal) {
-            modal = document.createElement('div');
-            modal.id = 'modalLeccion';
-            modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;overflow-y:auto;padding:20px;';
-            document.body.appendChild(modal);
-          }
-          
-          modal.innerHTML = html;
-          modal.style.display = 'block';
-          document.body.style.overflow = 'hidden';
-          
-          // Ejecutar scripts de la lección
-          const scripts = modal.querySelectorAll('script');
-          scripts.forEach(oldScript => {
-            const newScript = document.createElement('script');
-            Array.from(oldScript.attributes).forEach(attr => {
-              newScript.setAttribute(attr.name, attr.value);
-            });
-            newScript.textContent = oldScript.textContent;
-            oldScript.parentNode.replaceChild(newScript, oldScript);
-          });
-        })
-        .catch(err => {
-          alert('Error: ' + err.message);
-        });
+      // ✅ VERIFICAR QUE TENEMOS EL JUGADOR ID
+      if (!jugadorActualId) {
+        alert("Error: No se encontró el jugador. Volvé a ingresar tu cédula.");
+        return;
+      }
+      
+      let modal = document.getElementById('modalLeccion');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'modalLeccion';
+        modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:9999;';
+        document.body.appendChild(modal);
+      }
+      
+      // ✅ PASAR jugador_id EN LA URL DEL IFRAME
+      modal.innerHTML = `
+        <div style="position:relative;width:100%;height:100%;">
+          <button onclick="cerrarLeccion()" style="position:fixed;top:20px;right:20px;z-index:10000;padding:12px 24px;background:#ff4444;color:white;border:none;border-radius:8px;cursor:pointer;font-size:16px;font-weight:bold;box-shadow:0 4px 12px rgba(0,0,0,0.4);">✕ Cerrar</button>
+          <iframe src="/leccion/${n}?jugador_id=${jugadorActualId}" style="width:100%;height:100vh;border:none;background:#1b263b;"></iframe>
+        </div>
+      `;
+      modal.style.display = 'block';
+      document.body.style.overflow = 'hidden';
     }
 
     // ✅ CERRAR LECCIÓN Y VOLVER A INICIO
@@ -708,21 +698,53 @@ INDEX_HTML = """
       const modal = document.getElementById('modalLeccion');
       if (modal) {
         modal.style.display = 'none';
+        modal.innerHTML = ''; // Limpiar iframe
         document.body.style.overflow = 'auto';
       }
     }
 
-    // ✅ AVANZAR A SIGUIENTE LECCIÓN (llamado desde lección.html cuando aprueba)
-    function avanzarSiguienteLeccion() {
-      cerrarLeccion();
-      leccionActualNumero++;
-      if (leccionActualNumero <= 6) {
-        setTimeout(() => abrirLeccion(leccionActualNumero), 300);
-      } else {
-        alert("🎉 ¡Completaste el curso! Felicitaciones.");
+    // ✅ ESCUCHAR MENSAJES DEL IFRAME (cuando aprueba la lección)
+    window.addEventListener('message', function(e) {
+      if (e.data && e.data.tipo === 'leccion_aprobada') {
+        const nota = e.data.nota;
+        const leccion = e.data.leccion;
+        
+        // Guardar aprobación en base de datos y avanzar
+        guardarAprobacionYBorrar(leccion, nota);
+      }
+    });
+
+    // ✅ GUARDAR APROBACIÓN Y AVANZAR
+    async function guardarAprobacionYBorrar(leccionNum, nota) {
+      if (!jugadorActualId) return;
+      
+      try {
+        // Guardar en BD (ya se guardó en la lección, pero verificamos)
+        const res = await fetch('/guardar_aprobacion_pg', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            jugador_id: jugadorActualId,
+            leccion_numero: leccionNum,
+            nota: nota
+          })
+        });
+        
+        if (res.ok) {
+          cerrarLeccion();
+          leccionActualNumero++;
+          
+          if (leccionActualNumero <= 6) {
+            setTimeout(() => abrirLeccion(leccionActualNumero), 500);
+          } else {
+            alert("🎉 ¡Felicidades! Completaste todas las lecciones.");
+          }
+        }
+      } catch (err) {
+        console.error('Error guardando aprobación:', err);
       }
     }
-  </script>
+</script>
 </body>
 </html>
 """

@@ -1,126 +1,244 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lección 1 - Fundamentos</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #1b263b;
+            color: #ffff00;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 { color: #00ff00; text-align: center; }
+        .contenido { background: #415a77; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        .btn {
+            background: #28a745;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn:hover { background: #218838; }
+        #testArea { margin-top: 20px; }
+        .pregunta { margin: 15px 0; padding: 15px; background: #2a3f5f; border-radius: 8px; }
+        .opcion { margin: 8px 0; }
+        .opcion label { color: #fff; cursor: pointer; }
+        .timer-bar { background: #333; height: 4px; margin-bottom: 10px; border-radius: 2px; }
+        .timer-fill { background: #00ff00; height: 100%; width: 100%; transition: width 1s linear; }
+        #resultArea { margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+    <h1>📚 Lección 1: Fundamentos y Reglas</h1>
+
+    <!-- CONTENIDO DE LA LECCIÓN -->
+    <div class="contenido" id="contenidoLeccion">
+        <h2>Contenido teórico</h2>
+        <p>Bienvenido a la primera lección. Aquí aprenderás los fundamentos básicos del fútbol:</p>
+        <ul>
+            <li><strong>Regla 1:</strong> Solo el portero puede usar las manos dentro del área.</li>
+            <li><strong>Regla 2:</strong> El offside se sanciona cuando un jugador está más cerca del arco rival que el último defensor al recibir el pase.</li>
+            <li><strong>Regla 3:</strong> El saque de banda se realiza con dos pies en el suelo y el balón detrás de la cabeza.</li>
+            <li><strong>Regla 4:</strong> Los penales se cobran desde el punto penal a 11 metros del arco.</li>
+        </ul>
+        <p><strong>Tip:</strong> Controlar el balón con la planta o interior del pie te da mejor precisión.</p>
+        
+        <button class="btn" onclick="L1.iniciarTest()">Comenzar Test →</button>
+    </div>
+
+    <!-- ÁREA DEL TEST -->
+    <div id="testArea"></div>
+    <div id="resultArea"></div>
+
 <script>
 // NAMESPACE único para lección 1
 const L1 = {
-  preguntas: [],
-  idx: 0,
-  aciertos: 0,
-  timer: null,
-  
-  volver() { location.reload(); },
-  
-  corregir() {
-    const sel = document.querySelector('input[name="opt"]:checked');
-    if(!sel){ alert("Elegí una opción."); return; }
-    clearInterval(L1.timer);
-    if(parseInt(sel.value) === L1.preguntas[L1.idx].ok) L1.aciertos++;
-    L1.idx++;
-    if(L1.idx < L1.preguntas.length){ L1.mostrarPregunta(); } else { L1.finalizar(); }
-  },
-  
-  async finalizar() {
-    const total = L1.preguntas.length;
-    if (L1.aciertos === total) {
-      localStorage.setItem("modulo1", "aprobado");
-
-      const jugadorId = window.jugadorIdReal;
-      if (!jugadorId) {
-        alert("No se encontró el id del jugador");
-        return;
-      }
-
-      const payload = {
-        jugador_id:     jugadorId,
-        leccion_numero: 1,
-        nota:           L1.aciertos
-      };
-
-      try {
-        const res = await fetch("/guardar_aprobacion_pg", {
-          method:  "POST",
-          headers: {"Content-Type": "application/json"},
-          body:    JSON.stringify(payload),
-          credentials: "include"
+    preguntas: [],
+    idx: 0,
+    aciertos: 0,
+    timer: null,
+    
+    iniciarTest() {
+        // Ocultar contenido, mostrar test
+        document.getElementById('contenidoLeccion').style.display = 'none';
+        this.idx = 0;
+        this.aciertos = 0;
+        this.preguntas = [
+            {q: "¿Quién puede usar las manos dentro del rectángulo?", opts: ["Cualquier jugador", "Solo el portero", "El capitán", "Nadie"], ok: 1},
+            {q: "¿Qué ocurre si estás más cerca del arco que el último defensa al recibir un pase?", opts: ["Gol válido", "Falta directa", "Offside", "Saque de meta"], ok: 2},
+            {q: "¿Cómo se debe realizar el saque de banda?", opts: ["Con un pie en la línea", "Saltando", "Dos pies en el campo y pelota detrás de la cabeza", "Con la mano"], ok: 2},
+            {q: "¿Dónde se cobra un penal?", opts: ["Desde el círculo central", "Desde el punto penal", "Desde la banda", "Desde el corner"], ok: 1},
+            {q: "¿Con qué parte del pie se recomienda controlar un balón alto?", opts: ["Empeine", "Planta o interior", "Talón", "Rodilla"], ok: 1},
+            {q: "¿A qué pie se le debe pasar la pelota al compañero?", opts: ["Al pie malo", "Al que esté más cerca", "Al pie bueno", "Al que pida de talón"], ok: 2},
+            {q: "¿A qué poste se recomienda apuntar al disparar?", opts: ["Al que esté más lejos", "Al palo cercano", "Al árbitro", "Al cielo"], ok: 1},
+            {q: "¿Cómo se debe marcar al rival?", opts: ["Por detrás", "De frente", "De costado, brazo extendido, sin derribar", "Corriendo tras él"], ok: 2},
+            {q: "¿Qué se debe hacer antes de pedir la pelota?", opts: ["Quedarse quieto", "Gritar más fuerte", "Desmarcarse con dos pasos y señalar", "Esperar al árbitro"], ok: 2},
+            {q: "¿Qué error evita el equipo que quiere mantener el orden?", opts: ["Salir por el centro del área", "Pase largo", "Tiro al arco", "Corners"], ok: 0}
+        ];
+        this.mostrarPregunta();
+    },
+    
+    mostrarPregunta() {
+        const p = this.preguntas[this.idx];
+        const total = this.preguntas.length;
+        
+        let html = `
+            <div class="timer-bar"><div class="timer-fill" id="timerFill"></div></div>
+            <div class="pregunta">
+                <h3>Pregunta ${this.idx + 1} de ${total}</h3>
+                <p style="color: #fff; font-size: 18px;">${p.q}</p>
+                <div id="opciones">
+        `;
+        
+        p.opts.forEach((opt, i) => {
+            html += `
+                <div class="opcion">
+                    <input type="radio" name="respuesta" id="opt${i}" value="${i}" style="margin-right: 10px;">
+                    <label for="opt${i}">${opt}</label>
+                </div>
+            `;
         });
-
-        if (!res.ok) throw new Error("Error HTTP " + res.status);
-
-        const data = await res.json();
-        if (data.status !== "ok") throw new Error(data.msg || "Falló guardar");
-
-        // Todo bien → mostrar resultado
-        document.getElementById('resultArea').innerHTML =
-          `<div class="alert alert-success">¡Aprobaste! Estás listo para jugar tu partido.</div>`;
-
-        const btnSiguiente = document.createElement('button');
-        btnSiguiente.className = 'btn btn-success mt-3';
-        btnSiguiente.textContent = 'Ver siguiente lección →';
-        btnSiguiente.onclick = () => abrirLeccionDentro(2);
-        document.getElementById('resultArea').appendChild(btnSiguiente);
-
-      } catch (e) {
-        console.error(e);
-        alert("No se pudo guardar la nota: " + e.message);
-      }
-
-    } else {
-      document.getElementById('resultArea').innerHTML =
-        `<div class="alert alert-warning">Respondiste ${L1.aciertos}/${total}. Necesitas 10/10 para aprobar.</div>`;
-      setTimeout(() => L1.volver(), 3000);
+        
+        html += `
+                </div>
+                <button class="btn" style="margin-top: 15px;" onclick="L1.corregir()">Responder</button>
+            </div>
+        `;
+        
+        document.getElementById('testArea').innerHTML = html;
+        
+        // Timer de 15 segundos
+        let tiempo = 15;
+        const timerFill = document.getElementById('timerFill');
+        this.timer = setInterval(() => {
+            tiempo--;
+            timerFill.style.width = (tiempo / 15 * 100) + '%';
+            if (tiempo <= 0) {
+                clearInterval(this.timer);
+                this.corregir(true); // timeout
+            }
+        }, 1000);
+    },
+    
+    corregir(timeout = false) {
+        clearInterval(this.timer);
+        
+        const seleccion = document.querySelector('input[name="respuesta"]:checked');
+        if (!seleccion && !timeout) {
+            alert("Seleccioná una opción");
+            return;
+        }
+        
+        const respuesta = seleccion ? parseInt(seleccion.value) : -1;
+        if (respuesta === this.preguntas[this.idx].ok) {
+            this.aciertos++;
+        }
+        
+        this.idx++;
+        
+        if (this.idx < this.preguntas.length) {
+            this.mostrarPregunta();
+        } else {
+            this.finalizar();
+        }
+    },
+    
+    async finalizar() {
+        const total = this.preguntas.length;
+        const testArea = document.getElementById('testArea');
+        const resultArea = document.getElementById('resultArea');
+        
+        testArea.innerHTML = '';
+        
+        if (this.aciertos === total) {
+            // ✅ APROBÓ - OBTENER JUGADOR_ID DE LA URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const jugadorId = urlParams.get('jugador_id');
+            
+            if (!jugadorId) {
+                resultArea.innerHTML = `
+                    <div style="background: #dc3545; color: white; padding: 20px; border-radius: 8px; text-align: center;">
+                        <h3>❌ Error</h3>
+                        <p>No se encontró el ID del jugador. Cerrá y volvé a ingresar tu cédula.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // GUARDAR EN BASE DE DATOS
+            try {
+                const res = await fetch('/guardar_aprobacion_pg', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        jugador_id: parseInt(jugadorId),
+                        leccion_numero: 1,
+                        nota: this.aciertos
+                    })
+                });
+                
+                const data = await res.json();
+                
+                if (data.status === 'ok') {
+                    // ✅ MOSTRAR ÉXITO Y BOTÓN PARA AVANZAR
+                    resultArea.innerHTML = `
+                        <div style="background: #28a745; color: white; padding: 30px; border-radius: 10px; text-align: center;">
+                            <h2>🎉 ¡Felicitaciones!</h2>
+                            <p style="font-size: 20px;">Aprobaste con ${this.aciertos}/${total}</p>
+                            <p>Lección 1 completada correctamente.</p>
+                            <button class="btn" style="font-size: 18px; margin-top: 20px;" onclick="L1.siguienteLeccion()">
+                                Continuar a Lección 2 →
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    throw new Error(data.msg || 'Error al guardar');
+                }
+            } catch (err) {
+                resultArea.innerHTML = `
+                    <div style="background: #ffc107; color: #000; padding: 20px; border-radius: 8px;">
+                        <h3>⚠️ Error al guardar</h3>
+                        <p>${err.message}</p>
+                        <button class="btn" onclick="location.reload()">Reintentar</button>
+                    </div>
+                `;
+            }
+            
+        } else {
+            // ❌ NO APROBÓ
+            resultArea.innerHTML = `
+                <div style="background: #ffc107; color: #000; padding: 30px; border-radius: 10px; text-align: center;">
+                    <h3>No aprobaste</h3>
+                    <p style="font-size: 18px;">Obtuviste ${this.aciertos}/${total}</p>
+                    <p>Necesitás 10/10 para aprobar.</p>
+                    <button class="btn" style="background: #dc3545; margin-top: 15px;" onclick="location.reload()">
+                        ↻ Reintentar Lección
+                    </button>
+                </div>
+            `;
+        }
+    },
+    
+    // ✅ FUNCIÓN CLAVE: AVANZAR A SIGUIENTE LECCIÓN
+    siguienteLeccion() {
+        // Enviar mensaje al padre (app.py) para que abra la siguiente lección
+        if (window.parent !== window) {
+            window.parent.postMessage({
+                tipo: 'leccion_aprobada',
+                leccion: 1,
+                nota: 10
+            }, '*');
+        }
     }
-  },
-  
-  iniciar() {
-    L1.idx = 0;
-    L1.aciertos = 0;
-    L1.preguntas = [
-      {q:"¿Quién puede usar las manos dentro del rectángulo?",opts:["Cualquier jugador","Solo el portero","El capitán","Nadie"],ok:1},
-      {q:"¿Qué ocurre si estás más cerca del arco que el último defensa al recibir un pase?",opts:["Gol válido","Falta directa","Offside","Saque de meta"],ok:2},
-      {q:"¿Cómo se debe realizar el saque de banda?",opts:["Con un pie en la línea","Saltando","Dos pies en el campo y pelota detrás de la cabeza","Con la mano"],ok:2},
-      {q:"¿Dónde se cobra un penal?",opts:["Desde el círculo central","Desde el punto penal","Desde la banda","Desde el corner"],ok:1},
-      {q:"¿Con qué parte del pie se recomienda controlar un balón alto?",opts:["Empeine","Planta o interior","Talón","Rodilla"],ok:1},
-      {q:"¿A qué pie se le debe pasar la pelota al compañero?",opts:["Al pie malo","Al que esté más cerca","Al pie bueno","Al que pida de talón"],ok:2},
-      {q:"¿A qué poste se recomienda apuntar al disparar?",opts:["Al que esté más lejos","Al palo cercano","Al árbitro","Al cielo"],ok:1},
-      {q:"¿Cómo se debe marcar al rival?",opts:["Por detrás","De frente","De costado, brazo extendido, sin derribar","Corriendo tras él"],ok:2},
-      {q:"¿Qué se debe hacer antes de pedir la pelota?",opts:["Quedarse quieto","Gritar más fuerte","Desmarcarse con dos pasos y señalar","Esperar al árbitro"],ok:2},
-      {q:"¿Qué error evita el equipo que quiere mantener el orden?",opts:["Salir por el centro del área","Pase largo","Tiro al arco","Corners"],ok:0}
-    ];
-    L1.mostrarTest();
-  },
-  
-  mostrarTest() {
-    document.querySelector('.btn-success').style.display = 'none';
-    L1.mostrarPregunta();
-  },
-  
-  mostrarPregunta(){
-    const p = L1.preguntas[L1.idx];
-    let html = `<div class="timer-bar"><div class="timer-fill" style="width:100%"></div></div>
-                <b>Pregunta ${L1.idx+1}/10</b> – ${p.q}<br><small id="countdown">12s</small><div class="mt-2">`;
-    p.opts.forEach((o,k)=> html += `
-      <div class="form-check">
-        <input class="form-check-input" type="radio" name="opt" id="o${k}" value="${k}">
-        <label class="form-check-label" for="o${k}" style="color:#fff">${o}</label>
-      </div>`);
-    html += `</div><button class="btn btn-primary btn-sm mt-2" onclick="L1.corregir()">Siguiente</button>`;
-    document.getElementById('testArea').innerHTML = html;
-
-    let seg = 12;
-    const bar = document.querySelector('.timer-fill');
-    const txt = document.getElementById('countdown');
-    L1.timer = setInterval(()=>{
-      seg--;
-      bar.style.width = (seg/12*100) + '%';
-      txt.textContent = seg + 's';
-      if(seg === 0){ clearInterval(L1.timer); L1.timeOut(); }
-    },1000);
-  },
-  
-  timeOut(){ 
-    alert("Se acabó el tiempo. Volvé a intentarlo."); 
-    L1.volver(); 
-  }
 };
-
-// Función global que llama el HTML
-function mostrarTest() { L1.iniciar(); }
 </script>
+
+</body>
+</html>

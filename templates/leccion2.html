@@ -14,10 +14,12 @@
     .timer-fill{height:100%;background:#0d6efd;transition:width 1s linear}
     .ventana{max-height:70vh;overflow-y:auto;padding:15px}
     #testArea{max-height:60vh;overflow-y:auto}
+    .opcion{margin:8px 0;padding:10px;background:#2a3f5f;border-radius:5px;cursor:pointer}
+    .opcion:hover{background:#3a5070}
+    .opcion input{margin-right:10px}
   </style>
 </head>
 <body class="p-4">
-<button onclick="volverAlModal()" class="btn btn-sm btn-secondary mb-3">← Volver al módulo</button>
 
 <div class="ventana" style="max-width:700px;margin:auto">
   <h4>Lección 2: Pase interior – precisión y ritmo</h4>
@@ -56,7 +58,7 @@
   </div>
 
   <div class="text-center mt-4">
-    <button class="btn-leer" onclick="iniciarLeccion()">Leído → Comenzar test</button>
+    <button class="btn-leer" onclick="L2.iniciar()">Leído → Comenzar test</button>
   </div>
 
   <div id="testArea"></div>
@@ -64,14 +66,14 @@
 </div>
 
 <script>
-// NAMESPACE único para lección 2 - NO TOCAR ESTA ESTRUCTURA
+// NAMESPACE único para lección 2
 const L2 = {
   preguntas: [],
   idx: 0,
   aciertos: 0,
   timer: null,
   
-  volver() { location.reload(); },
+  volver() { location.href = '/leccion/2'; },
   
   corregir() {
     const sel = document.querySelector('input[name="opt"]:checked');
@@ -82,32 +84,91 @@ const L2 = {
     if(L2.idx < L2.preguntas.length){ L2.mostrarPregunta(); } else { L2.finalizar(); }
   },
   
-  finalizar() {
+  async finalizar() {
     const total = L2.preguntas.length;
+    const testArea = document.getElementById('testArea');
+    const resultArea = document.getElementById('resultArea');
+    
+    testArea.innerHTML = '';
+    
     if(L2.aciertos === total){
-      localStorage.setItem("modulo2","aprobado");
-      document.getElementById('resultArea').innerHTML =
-        `<div class="alert alert-success">¡Aprobaste! Ya dominás el pase interior.</div>`;
+      // ✅ OBTENER jugador_id DE LA URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const jugadorId = urlParams.get('jugador_id');
       
-      fetch("/guardar_aprobacion_pg", {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({
-          jugador_id: window.jugadorIdReal || 1, 
-          leccion_numero: 2, 
-          nota: L2.aciertos
-        })
-      });
+      if (!jugadorId) {
+        resultArea.innerHTML = `
+          <div class="alert alert-danger text-center">
+            <h4>❌ Error</h4>
+            <p>No se encontró el ID del jugador. Cerrá y volvé a ingresar tu cédula.</p>
+          </div>
+        `;
+        return;
+      }
       
-      const btn = document.createElement('button');
-      btn.className = 'btn btn-success mt-3';
-      btn.textContent = 'Ver siguiente lección →';
-      btn.onclick = () => abrirLeccionDentro(3);
-      document.getElementById('resultArea').appendChild(btn);
+      // GUARDAR EN BASE DE DATOS
+      try {
+        const res = await fetch("/guardar_aprobacion_pg", {
+          method: "POST",
+          headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({
+            jugador_id: parseInt(jugadorId), 
+            leccion_numero: 2, 
+            nota: L2.aciertos
+          })
+        });
+        
+        const data = await res.json();
+        
+        if (data.status === 'ok') {
+          // ✅ MOSTRAR ÉXITO Y BOTÓN PARA AVANZAR
+          resultArea.innerHTML = `
+            <div class="alert alert-success text-center" style="background:#28a745;color:#fff;padding:30px;border-radius:10px;">
+              <h2>🎉 ¡Felicitaciones!</h2>
+              <p style="font-size:20px;">Aprobaste con ${L2.aciertos}/${total}</p>
+              <p>Lección 2 completada correctamente.</p>
+              <button class="btn btn-light btn-lg mt-3" style="color:#28a745;font-weight:bold;" onclick="L2.siguienteLeccion()">
+                Continuar a Lección 3 →
+              </button>
+            </div>
+          `;
+        } else {
+          throw new Error(data.msg || 'Error al guardar');
+        }
+      } catch (err) {
+        resultArea.innerHTML = `
+          <div class="alert alert-warning text-center">
+            <h4>⚠️ Error al guardar</h4>
+            <p>${err.message}</p>
+            <button class="btn btn-primary" onclick="location.reload()">Reintentar</button>
+          </div>
+        `;
+      }
+      
     } else {
-      document.getElementById('resultArea').innerHTML =
-        `<div class="alert alert-warning">Respondiste ${L2.aciertos}/${total}. Necesitas 10/10 para aprobar.</div>`;
-      setTimeout(()=> L2.volver(), 3000);
+      // ❌ NO APROBÓ
+      resultArea.innerHTML = `
+        <div class="alert alert-warning text-center" style="padding:30px;border-radius:10px;">
+          <h3>No aprobaste</h3>
+          <p style="font-size:18px;">Obtuviste ${L2.aciertos}/${total}</p>
+          <p>Necesitás 10/10 para aprobar.</p>
+          <button class="btn btn-danger mt-3" onclick="location.reload()">
+            ↻ Reintentar Lección
+          </button>
+        </div>
+      `;
+    }
+  },
+  
+  // ✅ FUNCIÓN CLAVE: AVANZAR A SIGUIENTE LECCIÓN
+  siguienteLeccion() {
+    // Enviar mensaje al padre (app.py) para que abra la siguiente lección automáticamente
+    if (window.parent !== window) {
+      window.parent.postMessage({
+        tipo: 'leccion_aprobada',
+        leccion: 2,
+        nota: 10
+      }, '*');
     }
   },
   
@@ -137,13 +198,13 @@ const L2 = {
   mostrarPregunta(){
     const p = L2.preguntas[L2.idx];
     let html = `<div class="timer-bar"><div class="timer-fill" style="width:100%"></div></div>
-                <b>Pregunta ${L2.idx+1}/10</b> – ${p.q}<br><small id="countdown">12s</small><div class="mt-2">`;
+                <b style="color:#00ff00;">Pregunta ${L2.idx+1}/10</b> – <span style="color:#fff;">${p.q}</span><br><small id="countdown" style="color:#ffff00;">12s</small><div class="mt-2">`;
     p.opts.forEach((o,k)=> html += `
-      <div class="form-check">
-        <input class="form-check-input" type="radio" name="opt" id="o${k}" value="${k}">
-        <label class="form-check-label" for="o${k}" style="color:#fff;">${o}</label>
+      <div class="opcion">
+        <input type="radio" name="opt" id="o${k}" value="${k}">
+        <label for="o${k}">${o}</label>
       </div>`);
-    html += `</div><button class="btn btn-primary btn-sm mt-2" onclick="L2.corregir()">Siguiente</button>`;
+    html += `</div><button class="btn btn-primary btn-sm mt-2" style="background:#415a77;color:#ffff00;border:none;padding:10px 20px;border-radius:5px;cursor:pointer;margin-top:15px;" onclick="L2.corregir()">Siguiente</button>`;
     document.getElementById('testArea').innerHTML = html;
 
     let seg = 12;
@@ -162,10 +223,6 @@ const L2 = {
     L2.volver();
   }
 };
-
-// Funciones globales que llama el HTML
-function volverAlModal() { L2.volver(); }
-function iniciarLeccion() { L2.iniciar(); }
 </script>
 </body>
 </html>
