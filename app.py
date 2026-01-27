@@ -541,9 +541,8 @@ INDEX_HTML = """
     });
 
     /* ---------- MODAL INSCRIPCIÓN ---------- */
-    let jugadoresList = []; // [{id, nombre}, ...]
+    let jugadoresList = [];
 
-    /* Cargar jugadores al iniciar */
     (async () => {
       try {
         const res = await fetch('/api/jugadores');
@@ -560,14 +559,15 @@ INDEX_HTML = """
       }
     })();
 
-   function abrirModal() {
-  const clave = prompt("Contraseña de administrador para inscripciones:");
-  if (clave === FORM_CLAVE_CORRECTA) {
-    document.getElementById('modalInscripcion').style.display = 'block';
-  } else if (clave !== null) {
-    alert("❌ Contraseña incorrecta");
-  }
-}
+    function abrirModal() {
+      const clave = prompt("Contraseña de administrador para inscripciones:");
+      if (clave === FORM_CLAVE_CORRECTA) {
+        document.getElementById('modalInscripcion').style.display = 'block';
+      } else if (clave !== null) {
+        alert("❌ Contraseña incorrecta");
+      }
+    }
+    
     function cerrarModal() {
       document.getElementById('modalInscripcion').style.display = 'none';
       document.getElementById('formInscripcion').reset();
@@ -596,80 +596,47 @@ INDEX_HTML = """
       alert(res.message);
       cerrarModal();
     }
-    /* ---------- GUARDAR APROBACIÓN (TEST) ---------- */
-async function finalizar() {
-  const total = preguntas.length;
-  if (aciertos === total) {
-    localStorage.setItem("modulo1", "aprobado");
 
-    // Usa el ID real del jugador que escribió su cédula
-    const jugadorId = window.jugadorIdReal || 1;
+    /* ---------- FUNCIÓN: BUSCAR Y ABRIR TEST ---------- */
+    async function buscarYAbrirTest() {
+      const cedula = document.getElementById('cedulaTest').value.trim();
+      if (!cedula) { alert("Ingresa tu cédula"); return; }
 
-      fetch("/guardar_aprobacion_pg", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-  jugador_id: window.jugadorIdReal || 1,
-  leccion_numero: 1,
-  nota: aciertos
-})  
+      const res = await fetch('/api/jugadores');
+      const data = await res.json();
+      const jugador = data.jugadores.find(j => j.cedula === cedula);
+
+      if (!jugador) { alert("No estás registrado. Regístrate primero."); return; }
+
+      window.jugadorIdReal = jugador.id;
+      abrirLeccionDentro(1);
+    }
+
+    /* ---------- VALIDACIÓN SUBIDA PDF ---------- */
+    document.getElementById('pdfForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const file = this.pdf.files[0];
+      if (!file) { alert("Selecciona un archivo."); return; }
+      if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+        alert("Solo se permite PDF.");
+        return;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        alert("El archivo no puede superar 10 MB.");
+        return;
+      }
+
+      const id = document.getElementById('pdfJugador').value;
+      const fd = new FormData();
+      fd.append('pdf', file);
+      fetch('/subir_pdf/' + encodeURIComponent(id), {
+        method: 'POST',
+        body: fd,
+        credentials: 'include'
+      })
+      .then(() => location.reload())
+      .catch(() => alert('Error al subir'));
     });
-
-    document.getElementById('resultArea').innerHTML =
-      `<div class="alert alert-success">¡Aprobaste! Estás listo para jugar tu partido.</div>`;
-
-    const btnSiguiente = document.createElement('button');
-    btnSiguiente.className = 'btn btn-success mt-3';
-    btnSiguiente.textContent = 'Ver siguiente lección →';
-    btnSiguiente.onclick = () => abrirLeccionDentro(2);
-    document.getElementById('resultArea').appendChild(btnSiguiente);
-  } else {
-    document.getElementById('resultArea').innerHTML =
-      `<div class="alert alert-warning">Respondiste ${aciertos}/${total}. Necesitas 10/10 para aprobar.</div>`;
-    setTimeout(() => volverAlModal(), 3000);
-  }
-}
-
-/* ---------- FUNCIÓN NUEVA: BUSCAR Y ABRIR TEST ---------- */
-async function buscarYAbrirTest() {
-  const cedula = document.getElementById('cedulaTest').value.trim();
-  if (!cedula) { alert("Ingresa tu cédula"); return; }
-
-  const res = await fetch('/api/jugadores');
-  const data = await res.json();
-  const jugador = data.jugadores.find(j => j.cedula === cedula);
-
-  if (!jugador) { alert("No estás registrado. Regístrate primero."); return; }
-
-  window.jugadorIdReal = jugador.id;
-  abrirLeccionDentro(1); // ✅ ABRE LECCIÓN 1
-}
-/* ---------- VALIDACIÓN SUBIDA PDF ---------- */
-document.getElementById('pdfForm').addEventListener('submit', function (e) {
-  e.preventDefault();
-  const file = this.pdf.files[0];
-  if (!file) { alert("Selecciona un archivo."); return; }
-  if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
-    alert("Solo se permite PDF.");
-    return;
-  }
-  if (file.size > 10 * 1024 * 1024) {
-    alert("El archivo no puede superar 10 MB.");
-    return;
-  }
-
-  const id = document.getElementById('pdfJugador').value;
-  const fd = new FormData();
-  fd.append('pdf', file);
-  fetch('/subir_pdf/' + encodeURIComponent(id), {
-    method: 'POST',
-    body: fd,
-    credentials: 'include'
-  })
-  .then(() => location.reload())
-  .catch(() => alert('Error al subir'));
-});
-
   </script>
 
   <!-- Modal Inscripción -->
@@ -702,92 +669,55 @@ document.getElementById('pdfForm').addEventListener('submit', function (e) {
 
   <button type="submit" class="btn" style="width:100%; margin-top:15px;">Registrar</button>
 </form> </div>
-</div>   <!-- cierra modalInscripcion -->
+<!-- cierra modalInscripcion -->
 
 <!-- Modal Módulo -->
 <div id="moduloModal" class="ventana modulo-lecciones" style="display:none;position:fixed;top:10%;left:50%;transform:translateX(-50%);z-index:9999;max-width:800px;width:90%;"></div>
+
 <script>
+/* ---------- SISTEMA DE LECCIONES (10 LECCIONES) ---------- */
 const PASS_MODULO = "futbol2025";
+const TITULOS_LECCIONES = [
+  'Fundamentos y reglas',
+  'Pase interior', 
+  'Conducción',
+  'Control orientado',
+  'Presión tras pérdida',
+  'Saque de banda',
+  'Corner a favor',
+  'Corner en contra',
+  'Posesión y descanso',
+  'Fair Play y actitud'
+];
 
 function abrirModulo(){
-  const modal = document.getElementById('moduloModal');
-  modal.innerHTML = `
-    <div class="modal-content">
-      <span class="close" onclick="modal.style.display='none'">&times;</span>
-      <h3>Lecciones del Módulo</h3>
-      <div class="list-group">
-        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(1); return false;">Lección 1: Fundamentos y reglas</a>
-        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(2); return false;">Lección 2: Pase interior</a>
-        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(3); return false;">Lección 3: Conducción</a>
-        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(4); return false;">Lección 4: Control orientado</a>
-        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(5); return false;">Lección 5: Presión tras pérdida</a>
-        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(6); return false;">Lección 6: Saque de banda</a>
-        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(7); return false;">Lección 7: Corner a favor</a>
-        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(8); return false;">Lección 8: Corner en contra</a>
-        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(9); return false;">Lección 9: Posesión y descanso</a>
-        <a href="#" class="list-group-item" onclick="abrirLeccionDentro(10); return false;">Lección 10: Fair Play y actitud</a>
-      </div>
-      <button class="btn btn-sm btn-secondary mt-3" onclick="location.reload()">Cerrar</button>
-    </div>`;
-  modal.style.display = 'block';
-}
-function abrirLeccionDentro(n){
-  fetch("/leccion/" + n)
-    .then(r => r.text())
-    .then(html => {
-      const modal = document.getElementById('moduloModal');
-      modal.innerHTML = html;
-
-      /* =====  EJECUTAR SCRIPTS INSERTADOS  ===== */
-      modal.querySelectorAll('script').forEach(oldScript => {
-        const newScript = document.createElement('script');
-        Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-        newScript.textContent = oldScript.textContent;
-        oldScript.parentNode.replaceChild(newScript, oldScript);
-      });
-
-      modal.style.display = 'block';
-      modal.scrollTop = 0;
-    });
-}
-
-function volverAlModal(){
-  location.reload();
-}
-
-/* ---------- MODAL CENTRADO Y SCROLLEABLE ---------- */
-function abrirModulo(){
-  /* si ya existe solo lo mostramos */
   let overlay = document.getElementById('overlayModulos');
   if(!overlay){
     overlay = document.createElement('div');
     overlay.id = 'overlayModulos';
-    overlay.style.cssText = `
-      position:fixed; inset:0;                  /* tapa toda la pantalla */
-      background:rgba(0,0,0,.75);               /* fondo oscuro */
-      display:flex; align-items:center; justify-content:center;
-      z-index:9999;
-    `;
-    overlay.innerHTML = `
-      <div style="
-        background:#1b263b; color:#ffff00; border-radius:12px; padding:25px 30px;
-        max-width:480px; width:90%; max-height:80vh; overflow-y:auto;
-        box-shadow:0 8px 30px rgba(0,0,0,.6);
-      ">
-        <span style="float:right;cursor:pointer;" onclick="cerrarModulo()">&times;</span>
-        <h3>Lecciones del Módulo</h3>
-        <div class="list-group" style="margin-top:15px;">
-          ${[...Array(10)].map((_,i)=>`
-            <a href="#" class="list-group-item" onclick="abrirLeccionDentro(${i+1}); return false;">
-              Lección ${i+1}: ${['Fundamentos y reglas','Pase interior','Conducción','Control orientado','Presión tras pérdida','Saque de banda','Corner a favor','Corner en contra','Posesión y descanso','Fair Play y actitud'][i]}
-            </a>`).join('')}
-        </div>
-        <button class="btn btn-sm btn-secondary mt-3" onclick="cerrarModulo()">Cerrar</button>
-      </div>
-    `;
+    overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,.75); display:flex; align-items:center; justify-content:center; z-index:9999;';
+    
+    // Generar botones de lecciones
+    let botonesHTML = '';
+    for(let i = 0; i < 10; i++){
+      const num = i + 1;
+      // Las primeras 6 disponibles, resto próximamente
+      const disponible = num <= 6;
+      const color = disponible ? '#415a77' : '#333';
+      const cursor = disponible ? 'pointer' : 'not-allowed';
+      const onclick = disponible 
+        ? 'onclick="abrirLeccionDentro(' + num + '); return false;"' 
+        : 'onclick="alert(\'Lección ' + num + ' disponible próximamente\'); return false;"';
+      const icono = disponible ? '' : ' 🔒';
+      
+      botonesHTML += '<a href="#" style="display:block; padding:12px; margin:8px 0; background:' + color + '; color:#ffff00; text-decoration:none; border-radius:8px; cursor:' + cursor + ';" ' + onclick + '>Lección ' + num + ': ' + TITULOS_LECCIONES[i] + icono + '</a>';
+    }
+    
+    overlay.innerHTML = '<div style="background:#1b263b; color:#ffff00; border-radius:12px; padding:25px 30px; max-width:480px; width:90%; max-height:80vh; overflow-y:auto; box-shadow:0 8px 30px rgba(0,0,0,.6);"><span style="float:right;cursor:pointer;font-size:24px;" onclick="cerrarModulo()">&times;</span><h3>Lecciones del Módulo</h3><div style="margin-top:15px;">' + botonesHTML + '</div><button style="margin-top:20px; padding:10px 20px; background:#6c757d; color:#fff; border:none; border-radius:5px; cursor:pointer;" onclick="cerrarModulo()">Cerrar</button></div>';
+    
     document.body.appendChild(overlay);
-    overlay.addEventListener('click',e=>{ if(e.target===overlay) cerrarModulo(); });
-    document.addEventListener('keydown',e=>{ if(e.key==='Escape') cerrarModulo(); });
+    overlay.addEventListener('click', function(e){ if(e.target === overlay) cerrarModulo(); });
+    document.addEventListener('keydown', function(e){ if(e.key === 'Escape') cerrarModulo(); });
   }
   overlay.style.display = 'flex';
 }
@@ -795,6 +725,35 @@ function abrirModulo(){
 function cerrarModulo(){
   const m = document.getElementById('overlayModulos');
   if(m) m.style.display = 'none';
+}
+
+function abrirLeccionDentro(n){
+  // GUARDAR la lección actual (IMPORTANTE)
+  window.leccionActual = n;
+  
+  fetch("/leccion/" + n)
+    .then(function(r) { return r.text(); })
+    .then(function(html) {
+      const modal = document.getElementById('moduloModal');
+      modal.innerHTML = html;
+
+      // EJECUTAR SCRIPTS INSERTADOS
+      const scripts = modal.querySelectorAll('script');
+      scripts.forEach(function(oldScript) {
+        const newScript = document.createElement('script');
+        Array.from(oldScript.attributes).forEach(function(attr) {
+          newScript.setAttribute(attr.name, attr.value);
+        });
+        newScript.textContent = oldScript.textContent;
+        oldScript.parentNode.replaceChild(newScript, oldScript);
+      });
+
+      modal.style.display = 'block';
+      modal.scrollTop = 0;
+    })
+    .catch(function(err) {
+      alert('Error al cargar la lección: ' + err.message);
+    });
 }
 
 function volverAlModal(){
