@@ -650,7 +650,7 @@ INDEX_HTML = """
         const ultimaAprobada = progreso.ultima_aprobada || 0;
         leccionActualNumero = ultimaAprobada + 1;
         
-        if (leccionActualNumero > 6) {
+        if (leccionActualNumero > 10) {
           alert("🎉 ¡Felicidades! Ya completaste todas las lecciones disponibles.");
           return;
         }
@@ -734,7 +734,7 @@ INDEX_HTML = """
           cerrarLeccion();
           leccionActualNumero++;
           
-          if (leccionActualNumero <= 6) {
+          if (leccionActualNumero <= 10) {
             setTimeout(() => abrirLeccion(leccionActualNumero), 500);
           } else {
             alert("🎉 ¡Felicidades! Completaste todas las lecciones.");
@@ -1049,7 +1049,7 @@ def reporte_lecciones_completas():
         JOIN lecciones_aprobadas l ON l.jugador_id = j.id
         WHERE l.nota = 10
         GROUP BY j.id, j.nombre, j.cedula
-        HAVING COUNT(l.leccion_numero) = 6
+        HAVING COUNT(l.leccion_numero) = 10
         ORDER BY j.nombre
     """)# ... tus rutas anteriores ...
 

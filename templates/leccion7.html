@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Lección 7 – Tiros de esquina y tiros libres</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    body{background:#1b263b;color:#ffff00;padding:25px;font-family:Segoe UI,system-ui,sans-serif;margin:0}
+    h3{color:#00ff00;margin-bottom:15px}
+    h4{color:#00ff00;margin-top:20px;margin-bottom:10px}
+    .card{background:#415a77;border-radius:12px;padding:15px;margin:10px 0}
+    .btn{background:#00ff00;color:#1b263b;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;font-weight:bold}
+    .btn:hover{background:#ffff00}
+    label{display:block;margin:6px 0;cursor:pointer}
+    input{margin-right:8px}
+    .alert-success{color:#00ff00;text-align:center;padding:20px;background:#28a745;border-radius:8px;margin-top:15px}
+    .alert-warning{color:#ffcc00;text-align:center;padding:20px;background:#ffc107;color:#000;border-radius:8px;margin-top:15px}
+    .quote{border-left:3px solid #00ff00;padding-left:15px;margin:15px 0;font-style:italic;color:#ffff80}
+    table{width:100%;border-collapse:collapse;margin:15px 0;font-size:14px}
+    th,td{border:1px solid #ffff00;padding:8px;text-align:left}
+    th{background:#415a77;color:#00ff00}
+    .highlight{color:#00ff00;font-weight:bold}
+  </style>
+</head>
+<body>
+
+<div style="background:#1b263b;color:#ffff00;padding:25px;border-radius:12px;font-family:Segoe UI,system-ui,sans-serif;">
+  <h3>Lección 7: Tiros de esquina y tiros libres</h3>
+
+  <div class="quote">
+    "Un tiro de esquina bien ejecutado es el gol más barato del fútbol. No requiere talento individual, solo inteligencia colectiva y repetición." — Marcelo Bielsa
+  </div>
+
+  <div class="card">
+    <h4>🔷 FUNDAMENTOS TÉCNICOS: TIROS DE ESQUINA</h4>
+    <table>
+      <tr><th>Aspecto</th><th>Ejecución correcta</th><th>Error común</th></tr>
+      <tr><td><span class="highlight">Curva</span></td><td>In-swing (hacia portero) genera dudas; out-swing facilita remate</td><td>Cobrar sin observar posición del arquero</td></tr>
+      <tr><td><span class="highlight">Zonas</span></td><td>1er palo (desvío), centro (cabezazo), 2do palo (volea)</td><td>Todos al mismo punto predecible</td></tr>
+      <tr><td><span class="highlight">Bloqueos</span></td><td>2 jugadores bloquean al arquero sin falta; resto ataca libre</td><td>Bloquear sin coordinar tiempos</td></tr>
+      <tr><td><span class="highlight">Defensa</span></td><td>Mixta: zonal 1er palo, individual en referencia</td><td>Quedarse estático mirando el balón</td></tr>
+    </table>
+    <p><span class="highlight">Clave táctica:</span> Tener 3 rutinas distintas (A, B, C). El rival estudia videos; vos debés variar.</p>
+  </div>
+
+  <div class="card">
+    <h4>🔷 FUNDAMENTOS TÉCNICOS: TIROS LIBRES DIRECTOS</h4>
+    <p><span class="highlight">16-22 metros (zona de seguridad):</span></p>
+    <ul style="margin-left:20px;">
+      <li><b>Knuckleball:</b> Impacto seco con empeine, sin efecto, trayectoria impredecible (Cristiano Ronaldo)</li>
+      <li><b>Folha seca:</b> Efecto descendente brusco, balón que "muere" al llegar (Juninho)</li>
+      <li><b>Trivela:</b> Efecto exterior, curva amplia para engañar barrera (Messi)</li>
+    </ul>
+    <p><span class="highlight">22-30 metros:</span> Indirecto corto o disparo raso buscando desvío.</p>
+    <p><span class="highlight">+30 metros:</span> Centro medido, nunca directo.</p>
+  </div>
+
+  <div class="quote">
+    "El balón parado es el único momento donde el fútbol se parece al ajedrez: movés primero, pero el rival responde." — Carlo Ancelotti
+  </div>
+
+  <div class="card">
+    <h4>🔷 VARIANTES TÁCTICAS: TIROS LIBRES INDIRECTOS</h4>
+    <p><b>1. Finta de cobro:</b> Un jugador pasa sobre el balón, el segundo dispara con barrera desorganizada.</p>
+    <p><b>2. Pared corta:</b> Desdoblamiento rápido, desajuste de la presión.</p>
+    <p><b>3. Centro en movimiento:</b> Jugador arranca desde atrás para cabecear con impulso.</p>
+    <p><span class="highlight">Defensa:</span> Barrera salta coordinada (orden del arquero), último hombre cubre poste lejano.</p>
+  </div>
+
+  <div class="card" style="background:#28a745;">
+    <h4 style="color:#fff;margin-top:0;">📊 DATO CRÍTICO</h4>
+    <p style="color:#fff;margin:0;">Un equipo que entrena 15 minutos diarios de balón parado gana <b>9 puntos más por temporada</b> en ligas amateur. El rival no entrena la defensa; es asimetría de información.</p>
+  </div>
+
+  <div class="quote">
+    "El que domina el balón parado domina los momentos de tensión. Y el fútbol es eso: tensión mal administrada por uno, bien aprovechada por el otro." — Diego Simeone
+  </div>
+
+  <button class="btn" onclick="iniciarTest()">Iniciar evaluación</button>
+  <div id="testArea"></div>
+  <div id="resultArea"></div>
+</div>
+
+<script>
+const preguntas = [
+  { pregunta: "Según Bielsa, ¿qué requiere un buen tiro de esquina?", opciones: ["Talento individual", "Inteligencia colectiva y repetición", "Suerte", "Fuerza física"], correcta: 1 },
+  { pregunta: "¿Qué efecto genera más dudas en el arquero en un córner?", opciones: ["Out-swing", "Sin efecto", "In-swing (curva hacia portero)", "Disparo directo"], correcta: 2 },
+  { pregunta: "En tiros libres de 16-22 metros, ¿qué técnica usa Cristiano Ronaldo?", opciones: ["Folha seca", "Trivela", "Knuckleball (impacto seco sin efecto)", "Efecto interior"], correcta: 2 },
+  { pregunta: "¿Qué técnica de tiro libre hace que el balón 'muera' al llegar?", opciones: ["Knuckleball", "Trivela", "Folha seca (efecto descendente brusco)", "Raso"], correcta: 2 },
+  { pregunta: "¿Cuántas rutinas de córner debe tener un equipo preparado?", opciones: ["1 suficiente", "2", "3 (A, B, C) para variar", "5 o más"], correcta: 2 },
+  { pregunta: "En defensa de córner, ¿qué sistema es más efectivo?", opciones: ["Puro zonal", "Puro individual", "Mixto: zonal primer palo, individual en referencia", "Sin marca"], correcta: 2 },
+  { pregunta: "¿Qué sucede si un equipo entrena 15 minutos diarios de balón parado?", opciones: ["Nada significativo", "Mejora leve", "Gana 9 puntos más por temporada", "Solo mejora en práctica"], correcta: 2 },
+  { pregunta: "En tiros libres indirectos, ¿qué busca la 'finta de cobro'?", opciones: ["Perder tiempo", "Desorganizar la barrera rival", "Hacer falta", "Cambiar de cobrador"], correcta: 1 },
+  { pregunta: "A más de 30 metros, ¿qué se debe hacer en un tiro libre?", opciones: ["Disparar directo con potencia", "Centro medido, nunca directo", "Pase atrás siempre", "Tiro raso"], correcta: 1 },
+  { pregunta: "Según Guardiola, ¿qué probabilidad de gol tiene un tiro libre bien entrenado vs uno de Messi sin entrenar?", opciones: ["Menor", "Igual", "Mayor (35% entrenado vs 15% individual)", "El doble"], correcta: 2 }
+];
+
+let aciertos = 0;
+let index = 0;
+
+function iniciarTest() {
+  aciertos = 0;
+  index = 0;
+  mostrarPregunta();
+}
+
+function mostrarPregunta() {
+  if (index >= preguntas.length) { finalizar(); return; }
+  const p = preguntas[index];
+  let html = `<h4>Pregunta ${index + 1}/10</h4><p>${p.pregunta}</p>`;
+  p.opciones.forEach((op, i) => {
+    html += `<label><input type="radio" name="resp" value="${i}"> ${op}</label><br>`;
+  });
+  html += `<button class="btn" onclick="verificar()">Siguiente</button>`;
+  document.getElementById("testArea").innerHTML = html;
+}
+
+function verificar() {
+  const sel = document.querySelector('input[name="resp"]:checked');
+  if (!sel) return alert("Selecciona una opción");
+  if (parseInt(sel.value) === preguntas[index].correcta) aciertos++;
+  index++;
+  mostrarPregunta();
+}
+
+async function finalizar() {
+  const total = preguntas.length;
+  const resultArea = document.getElementById("resultArea");
+  
+  if (aciertos === total) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const jugadorId = urlParams.get('jugador_id');
+    
+    if (!jugadorId) {
+      resultArea.innerHTML = `
+        <div class="alert-warning">
+          <h4>❌ Error</h4>
+          <p>No se encontró el ID del jugador. Cerrá y volvé a ingresar tu cédula.</p>
+        </div>
+      `;
+      return;
+    }
+    
+    try {
+      const res = await fetch("/guardar_aprobacion_pg", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jugador_id: parseInt(jugadorId),
+          leccion_numero: 7,
+          nota: aciertos
+        })
+      });
+      
+      const data = await res.json();
+      
+      if (data.status === 'ok') {
+        resultArea.innerHTML = `
+          <div class="alert-success">
+            <h2>🎉 ¡Excelente!</h2>
+            <p style="font-size:20px;">Aprobaste con ${aciertos}/${total}</p>
+            <p>Lección 7 completada. Dominás el balón parado.</p>
+            <button class="btn" style="font-size:18px;margin-top:15px;background:#00ff00;color:#1b263b;border:none;padding:12px 24px;border-radius:8px;cursor:pointer;" onclick="siguienteLeccion()">
+              ➡️ Continuar a Lección 8
+            </button>
+          </div>
+        `;
+      } else {
+        throw new Error(data.msg || 'Error al guardar');
+      }
+    } catch (err) {
+      resultArea.innerHTML = `
+        <div class="alert-warning">
+          <h4>⚠️ Error al guardar</h4>
+          <p>${err.message}</p>
+          <button class="btn" onclick="location.reload()">Reintentar</button>
+        </div>
+      `;
+    }
+    
+  } else {
+    resultArea.innerHTML = `
+      <div class="alert-warning">
+        <h3>No aprobaste</h3>
+        <p style="font-size:18px;">Obtuviste ${aciertos}/${total}</p>
+        <p>Necesitás 10/10 para aprobar.</p>
+        <button class="btn" style="background:#dc3545;color:white;margin-top:15px;" onclick="location.reload()">
+          ↻ Reintentar Lección
+        </button>
+      </div>
+    `;
+  }
+}
+
+function siguienteLeccion() {
+  if (window.parent !== window) {
+    window.parent.postMessage({
+      tipo: 'leccion_aprobada',
+      leccion: 7,
+      nota: aciertos
+    }, '*');
+  }
+}
+</script>
+
+</body>
+</html>
